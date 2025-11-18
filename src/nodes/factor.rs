@@ -22,7 +22,7 @@ impl Node for Factor {
                 MulOp::Mul => Value::Int(l * r),
                 MulOp::Div => {
                     if r == 0 {
-                        Value::Void // Divide by zero
+                        Value::Void // TODO: Throw error in case of div by 0
                     } else {
                         Value::Int(l / r)
                     }

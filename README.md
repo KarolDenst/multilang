@@ -54,3 +54,26 @@ The parser maps specific rule names to built-in AST nodes:
 - `Print`: Prints the value of its expression.
 - `Return`: Returns the value of its expression.
 - `Int`: Parses the matched text as an integer.
+- `Term`: Handles addition (`Add`) and subtraction (`Sub`).
+- `Factor`: Handles multiplication (`Mul`) and division (`Div`).
+- `If`: Handles conditional logic (`IfElse`, `IfThen`).
+- `Boolean`: Represents `true` or `false` values.
+
+## Development Standards
+
+### Naming Conventions
+
+- **Rust Code**: Follow standard Rust naming conventions.
+    - Structs/Enums: `CamelCase`
+    - Functions/Variables/Modules: `snake_case`
+- **Grammar Rules**: Use `CamelCase` for rule names (e.g., `Program`, `Stmt`, `IfElse`).
+
+### Testing
+
+- **Unit Tests**: Place unit tests in the same file as the code they test, within a `mod tests` module.
+- **Integration Tests**: Place integration tests in the `tests/` directory.
+    - `print_test.rs`: Tests for `Print` functionality.
+    - `output_test.rs`: Tests for program return values.
+    - `arithmetic_test.rs`: Tests for arithmetic operations and precedence.
+    - `control_flow_test.rs`: Tests for `If/Else` logic.
+

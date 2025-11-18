@@ -1,6 +1,7 @@
 use crate::grammar::{Grammar, Pattern};
 use crate::node::Node;
-use crate::nodes::{Int, Print, Program};
+use crate::nodes::{Int, Print, Program, Block, FunctionDef, FunctionCall};
+use std::rc::Rc;
 use regex::Regex;
 
 pub struct Parser<'a> {
@@ -113,7 +114,7 @@ impl<'a> Parser<'a> {
                         },
                         "True" => Box::new(crate::nodes::boolean::Boolean { value: true }),
                         "False" => Box::new(crate::nodes::boolean::Boolean { value: false }),
-                        "Expr" | "Term" | "Factor" | "If" | "Block" => available_children.into_iter().find_map(|x| x).map(|(_, node)| node).unwrap(),
+                        "Expr" | "Term" | "Factor" | "If" => available_children.into_iter().find_map(|x| x).map(|(_, node)| node).unwrap(),
                         "Int" => {
                              // Int logic remains similar, but we need to handle the child structure
                              // The child comes from Regex match in parse_sequence
@@ -121,6 +122,122 @@ impl<'a> Parser<'a> {
                              let child = available_children.into_iter().find_map(|x| x).map(|(_, node)| node).unwrap();
                              let text = child.text().unwrap_or_default();
                              Box::new(Int { value: text.parse().unwrap_or(0) })
+                        },
+                        "FunctionDef" => {
+                            let name_node = take_child("name").unwrap();
+                            let name = name_node.text().unwrap_or_default();
+                            
+                            // Parse params
+                            let mut params = Vec::new();
+                            if let Some(param_list) = take_child("params") {
+                                // param_list is a Node, but we need to extract identifiers from it.
+                                // The grammar will likely be: params:ParamList
+                                // ParamList = Identifier ("," Identifier)*
+                                // But our parser returns a Node tree.
+                                // We need a way to traverse the ParamList node or parse it differently.
+                                // Current parser structure makes it hard to traverse children of a child.
+                                // However, `take_child` returns a Node. If we make ParamList a specific Node type that holds strings, we can downcast?
+                                // Or we can rely on the fact that `available_children` contains all matches for the rule.
+                                // But `params` is a named child.
+                                
+                                // Alternative: The grammar for FunctionDef will be:
+                                // FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
+                                // ParamList will produce a node.
+                                // Let's define a ParamList node? Or just parse it here?
+                                // If ParamList is a rule, `take_child("params")` returns the node for that rule.
+                                // If we define `ParamList` node to implement `text()` as comma separated? No.
+                                
+                                // Let's look at how `Block` works. It takes all statements.
+                                // `ParamList` could be similar.
+                                // Let's add `ParamList` to the match here.
+                                // But `FunctionDef` needs to access the content of `ParamList`.
+                                
+                                // Hack: `ParamList` node will store the list of params.
+                                // We need to cast `Box<dyn Node>` to `ParamList`.
+                                // Rust doesn't support easy downcasting for trait objects without Any.
+                                // Maybe we can add `as_any` to Node?
+                                
+                                // Or, we can just rely on `text()`? No.
+                                
+                                // Let's try to parse params manually from the input? No, that defeats the purpose.
+                                
+                                // Let's add `params()` method to Node trait?
+                                // fn params(&self) -> Option<Vec<String>> { None }
+                                
+                                if let Some(p_list) = param_list.params() {
+                                    params = p_list;
+                                }
+                            }
+                            
+                            let body = take_child("body").unwrap();
+                            Box::new(FunctionDef { name, params, body: Rc::from(body) })
+                        },
+                        "FunctionCall" => {
+                            let name_node = take_child("name").unwrap();
+                            let name = name_node.text().unwrap_or_default();
+                            
+                            let mut args = Vec::new();
+                            if let Some(arg_list) = take_child("args") {
+                                // Similar issue for args.
+                                // args:ArgList
+                                // ArgList = Expr ("," Expr)*
+                                // We need `args()` method on Node?
+                                if arg_list.is_args() {
+                                    args = arg_list.into_args();
+                                }
+                            }
+                            
+                            Box::new(FunctionCall { name, args })
+                        },
+                        "ParamList" => {
+                             let mut params = Vec::new();
+                             for item in available_children {
+                                 if let Some((_, node)) = item {
+                                     if let Some(text) = node.text() {
+                                        // TODO: The , should not be hard coded
+                                         if text != "," {
+                                             params.push(text);
+                                         }
+                                     } else if let Some(sub_params) = node.params() {
+                                         params.extend(sub_params);
+                                     }
+                                 }
+                             }
+                             Box::new(crate::nodes::ListNode { params: Some(params.clone()), args: None })
+                        },
+                        "ArgList" => {
+                             let mut args = Vec::new();
+                             for item in available_children {
+                                 if let Some((_, node)) = item {
+                                     if let Some(t) = node.text() {
+                                        // TODO: The , should not be hard coded
+                                         if t != "," {
+                                             // Identifier or literal acting as arg
+                                             // But wait, Identifier returns Variable node now.
+                                             // Variable node is an Expr.
+                                             // If it's a Variable node, we should treat it as an arg node, not just text.
+                                             // But `text()` returns name for Variable.
+                                             // We need to check if it's a "," literal.
+                                             // If it is not ",", it is an arg.
+                                             args.push(node);
+                                         }
+                                     } else if node.is_args() {
+                                         args.extend(node.into_args());
+                                     } else {
+                                         args.push(node);
+                                     }
+                                 }
+                             }
+                             Box::new(crate::nodes::ListNode { params: None, args: Some(args) })
+                        },
+                        "Block" => {
+                            let stmts = available_children.into_iter().filter_map(|x| x.map(|(_, node)| node)).collect();
+                            Box::new(Block { statements: stmts })
+                        },
+                        "Identifier" => {
+                             let child = available_children.into_iter().find_map(|x| x).map(|(_, node)| node).unwrap();
+                             let name = child.text().unwrap_or_default();
+                             Box::new(crate::nodes::Variable { name })
                         },
                         _ => panic!("Unknown rule: {}", rule_name),
                     };
@@ -137,6 +254,7 @@ impl<'a> Parser<'a> {
         let mut children: Vec<(Option<String>, Box<dyn Node>)> = Vec::new();
 
         for pattern in patterns {
+            pos = self.skip_whitespace(pos);
             match pattern {
                 Pattern::Literal(s) => {
                     let len = s.len();
@@ -215,8 +333,6 @@ impl<'a> Parser<'a> {
                     }
                 }
             }
-            
-            pos = self.skip_whitespace(pos);
         }
 
         Ok((children, pos))
