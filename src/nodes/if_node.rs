@@ -24,4 +24,15 @@ impl Node for If {
             Value::Void
         }
     }
+
+    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+        let condition = children.take_child("condition").unwrap();
+        let then_block = children.take_child("then").unwrap();
+        let else_block = children.take_child("else");
+        Box::new(If { 
+            condition, 
+            then_block, 
+            else_block 
+        })
+    }
 }

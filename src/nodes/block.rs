@@ -20,4 +20,9 @@ impl Node for Block {
         }
         last_val
     }
+
+    fn from_children(_rule_name: &str, children: crate::node::ParsedChildren) -> Box<dyn Node> {
+        let stmts = children.remaining().into_iter().map(|(_, node)| node).collect();
+        Box::new(Block { statements: stmts })
+    }
 }

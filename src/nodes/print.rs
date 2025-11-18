@@ -14,4 +14,9 @@ impl Node for Print {
         }
         Value::Void
     }
+
+    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+        let expr = children.take_child("expression").unwrap();
+        Box::new(Print { expression: expr })
+    }
 }

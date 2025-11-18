@@ -31,4 +31,15 @@ impl Node for Factor {
             _ => Value::Void,
         }
     }
+
+    fn from_children(rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+        let left = children.take_child("left").unwrap();
+        let right = children.take_child("right").unwrap();
+        let op = match rule_name {
+            "Mul" => MulOp::Mul,
+            "Div" => MulOp::Div,
+            _ => panic!("Unknown rule for Factor: {}", rule_name),
+        };
+        Box::new(Factor { op, left, right })
+    }
 }

@@ -40,4 +40,18 @@ impl Node for FunctionCall {
             Value::Void
         }
     }
+
+    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+        let name_node = children.take_child("name").unwrap();
+        let name = name_node.text().unwrap_or_default();
+        
+        let mut args = Vec::new();
+        if let Some(arg_list) = children.take_child("args") {
+            if arg_list.is_args() {
+                args = arg_list.into_args();
+            }
+        }
+        
+        Box::new(FunctionCall { name, args })
+    }
 }

@@ -25,4 +25,15 @@ impl Node for Term {
             _ => Value::Void,
         }
     }
+
+    fn from_children(rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+        let left = children.take_child("left").unwrap();
+        let right = children.take_child("right").unwrap();
+        let op = match rule_name {
+            "Add" => AddOp::Add,
+            "Sub" => AddOp::Sub,
+            _ => panic!("Unknown rule for Term: {}", rule_name),
+        };
+        Box::new(Term { op, left, right })
+    }
 }

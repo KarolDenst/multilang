@@ -17,4 +17,10 @@ impl Node for Variable {
     fn text(&self) -> Option<String> {
         Some(self.name.clone())
     }
+
+    fn from_children(_rule_name: &str, children: crate::node::ParsedChildren) -> Box<dyn Node> {
+        let child = children.remaining().into_iter().next().map(|(_, node)| node).unwrap();
+        let name = child.text().unwrap_or_default();
+        Box::new(Variable { name })
+    }
 }

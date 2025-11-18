@@ -36,4 +36,33 @@ pub trait Node {
     fn params(&self) -> Option<Vec<String>> { None }
     fn is_args(&self) -> bool { false }
     fn into_args(self: Box<Self>) -> Vec<Box<dyn Node>> { vec![] }
+    
+    // Static method to construct node from children
+    fn from_children(rule_name: &str, children: ParsedChildren) -> Box<dyn Node> where Self: Sized;
+}
+
+pub struct ParsedChildren {
+    pub children: Vec<(Option<String>, Box<dyn Node>)>,
+}
+
+impl ParsedChildren {
+    pub fn new(children: Vec<(Option<String>, Box<dyn Node>)>) -> Self {
+        Self { children }
+    }
+
+    pub fn take_child(&mut self, name: &str) -> Option<Box<dyn Node>> {
+        // 1. Try named match
+        if let Some(pos) = self.children.iter().position(|(n, _)| n.as_deref() == Some(name)) {
+            return Some(self.children.remove(pos).1);
+        }
+        // 2. Fallback to first unnamed
+        if let Some(pos) = self.children.iter().position(|(n, _)| n.is_none()) {
+            return Some(self.children.remove(pos).1);
+        }
+        None
+    }
+    
+    pub fn remaining(self) -> Vec<(Option<String>, Box<dyn Node>)> {
+        self.children
+    }
 }
