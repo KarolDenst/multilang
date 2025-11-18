@@ -1,0 +1,56 @@
+# Multilang
+
+Multilang is a dynamic language runtime that allows you to define languages using a grammar and execute them instantly.
+
+## Features
+
+- **Dynamic Grammar**: Define languages using a simple EBNF-like syntax.
+- **Extensible AST**: Built-in nodes for `Program`, `Print`, `Return`, `Int`.
+- **Instant Execution**: No compilation step required for the defined language.
+
+## Getting Started
+
+1.  Clone the repository.
+2.  Run the sample program:
+    ```bash
+    cargo run
+    ```
+
+## Defining Grammars
+
+You can define your language grammar using a string. The format is:
+
+```
+RuleName = Pattern1 Pattern2 ...
+```
+
+### Rules
+
+- **Literal**: Enclosed in double quotes, e.g., `"print"`. Matches exact text.
+- **Regex**: Enclosed in brackets, e.g., `[[0-9]+]`. Matches a regular expression.
+- **Rule Reference**: The name of another rule, e.g., `Stmt`.
+- **Sequence**: Space-separated patterns are matched in order.
+- **Alternatives**: Define the same rule multiple times to create alternatives.
+- **Repetition**: Append `*` to a rule name to match zero or more times (e.g., `Stmt*`).
+
+### Example
+
+```
+Program = Stmt*
+Stmt = Print
+Stmt = Return
+Print = "print" Int
+Return = "return" Int
+Int = [[0-9]+]
+```
+
+This grammar defines a program as a sequence of statements. A statement can be a `Print` or `Return` command. `Int` matches one or more digits.
+
+## Built-in Nodes
+
+The parser maps specific rule names to built-in AST nodes:
+
+- `Program`: Executes children sequentially.
+- `Print`: Prints the value of its expression.
+- `Return`: Returns the value of its expression.
+- `Int`: Parses the matched text as an integer.
