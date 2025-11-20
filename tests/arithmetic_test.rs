@@ -72,7 +72,6 @@ fn run_code(code: &str) -> Value {
         Program = Stmt*
         Stmt = FunctionDef
         Stmt = FunctionCall
-        Stmt = Print
         Stmt = Return
         FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
         FunctionDef = "fn" name:Identifier "(" ")" "{" body:Block "}"
@@ -86,7 +85,6 @@ fn run_code(code: &str) -> Value {
         ArgList = Expr "," args:ArgList
         ArgList = Expr
         
-        Print = "print" Expr
         Return = "return" Expr
         
         Expr = Term

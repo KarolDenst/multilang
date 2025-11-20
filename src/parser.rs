@@ -1,6 +1,6 @@
 use crate::grammar::{Grammar, Pattern};
 use crate::node::Node;
-use crate::nodes::{Literal, Print, Program, Block, FunctionDef, FunctionCall, Return, Term, Factor, If, Variable, ListNode};
+use crate::nodes::{Literal, Program, Block, FunctionDef, FunctionCall, Return, Term, Factor, If, Variable, ListNode, Comparison, Logical, Unary};
 use regex::Regex;
 
 pub struct Parser<'a> {
@@ -24,6 +24,9 @@ impl<'a> Parser<'a> {
         for rule in rules {
             match self.parse_sequence(&rule.patterns, pos) {
                 Ok((children_with_names, new_pos)) => {
+                    // if rule_name == "Comparison" {
+                    //    println!("Matched Comparison with {} children", children_with_names.len());
+                    // }
                     // Helper to extract children
                     // children_with_names is Vec<(Option<String>, Box<dyn Node>)>
                     
@@ -34,10 +37,12 @@ impl<'a> Parser<'a> {
                     let node: Box<dyn Node> = match rule_name {
                         "Program" => Program::from_children(rule_name, parsed_children),
                         "Stmt" => parsed_children.remaining().into_iter().next().unwrap().1,
-                        "Print" => Print::from_children(rule_name, parsed_children),
                         "Return" => Return::from_children(rule_name, parsed_children),
+                        "Comparison" => Comparison::from_children(rule_name, parsed_children),
+                        "LogicalOr" | "LogicalAnd" => Logical::from_children(rule_name, parsed_children),
                         "Add" | "Sub" | "Term" => Term::from_children(rule_name, parsed_children),
                         "Mul" | "Div" | "Factor" => Factor::from_children(rule_name, parsed_children),
+                        "Unary" => Unary::from_children(rule_name, parsed_children),
                         "IfElse" | "IfThen" => If::from_children(rule_name, parsed_children),
                         "Int" | "Float" | "String" | "True" | "False" => Literal::from_children(rule_name, parsed_children),
                         "FunctionDef" => FunctionDef::from_children(rule_name, parsed_children),
@@ -45,7 +50,7 @@ impl<'a> Parser<'a> {
                         "ParamList" | "ArgList" => ListNode::from_children(rule_name, parsed_children),
                         "Block" => Block::from_children(rule_name, parsed_children),
                         "Identifier" => Variable::from_children(rule_name, parsed_children),
-                        "Expr" | "Atom" | "If" | "AddOp" | "MulOp" => parsed_children.remaining().into_iter().next().unwrap().1,
+                        "Expr" | "Atom" | "If" | "AddOp" | "MulOp" | "CompOp" | "UnaryOp" => parsed_children.remaining().into_iter().next().unwrap().1,
                         _ => panic!("Unknown rule: {}", rule_name),
                     };
                     return Ok((node, new_pos));

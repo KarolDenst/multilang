@@ -13,12 +13,22 @@ fn test_script(grammar_def: &str, input: &str, expected: Value) {
 
 #[test]
 fn test_simple_print() {
-    let grammar = r#"
+    let grammar_def = r#"
         Program = Stmt*
-        Stmt = Print
-        Print = "print" Int
+        Stmt = FunctionCall
+        FunctionCall = name:Identifier "(" args:ArgList ")"
+        FunctionCall = name:Identifier "(" ")"
+        ArgList = Expr "," args:ArgList
+        ArgList = Expr
+        Expr = Int | String
         Int = [[0-9]+]
+        String = ["[^\"]*"]
+        Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
     "#;
-    let input = "print 123";
-    test_script(grammar, input, Value::Void);
+
+    let code = r#"
+        print(123)
+        print("hello")
+    "#;
+    test_script(grammar_def, code, Value::Void);
 }

@@ -17,18 +17,25 @@ pub struct Function {
     pub body: Rc<dyn Node>,
 }
 
+pub type BuiltInFunction = fn(Vec<Value>) -> Value;
+
 pub struct Context {
     // For now, context can be empty or hold variables later
     pub variables: HashMap<String, Value>,
     pub functions: HashMap<String, Function>,
+    pub builtins: HashMap<String, BuiltInFunction>,
 }
 
 impl Context {
     pub fn new() -> Self {
-        Self {
+        let mut ctx = Self {
             variables: HashMap::new(),
             functions: HashMap::new(),
-        }
+            builtins: HashMap::new(),
+        };
+        // Register built-ins
+        ctx.builtins.insert("print".to_string(), crate::functions::print::print_fn);
+        ctx
     }
 }
 

@@ -1,6 +1,8 @@
-pub mod print;
 pub mod program;
 pub mod literal;
+pub mod comparison;
+pub mod logical;
+pub mod unary;
 pub mod term;
 pub mod factor;
 pub mod block;
@@ -12,9 +14,11 @@ pub mod variable;
 pub mod list_node;
 
 pub use literal::Literal;
+pub use comparison::Comparison;
+pub use logical::Logical;
+pub use unary::Unary;
 pub use term::{Term, AddOp};
 pub use factor::{Factor, MulOp};
-pub use print::Print;
 pub use program::Program;
 pub use block::Block;
 pub use function_def::FunctionDef;

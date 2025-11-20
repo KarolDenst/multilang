@@ -46,15 +46,35 @@ impl Grammar {
                 continue;
             }
 
-            let parts: Vec<&str> = line.split('=').collect();
-            if parts.len() != 2 {
-                continue;
-            }
-
-            let name = parts[0].trim();
-            let rhs = parts[1].trim().trim_end_matches(';');
+            let (name, rhs) = match line.split_once('=') {
+                Some((n, r)) => (n.trim(), r.trim().trim_end_matches(';')),
+                None => continue,
+            };
             
-            for alternative in rhs.split('|') {
+            let mut alternatives = Vec::new();
+            let mut current_alt = String::new();
+            let mut in_quote = false;
+            let mut in_regex = false;
+            
+            for c in rhs.chars() {
+                if c == '"' && !in_regex {
+                    in_quote = !in_quote;
+                } else if c == '[' && !in_quote {
+                    in_regex = true;
+                } else if c == ']' && !in_quote {
+                    in_regex = false;
+                }
+                
+                if c == '|' && !in_quote && !in_regex {
+                    alternatives.push(current_alt.trim().to_string());
+                    current_alt.clear();
+                } else {
+                    current_alt.push(c);
+                }
+            }
+            alternatives.push(current_alt.trim().to_string());
+            
+            for alternative in alternatives {
                 let mut patterns = Vec::new();
                 for token in alternative.split_whitespace() {
                     if token.starts_with('"') && token.ends_with('"') {

@@ -7,6 +7,17 @@ pub struct FunctionCall {
 
 impl Node for FunctionCall {
     fn run(&self, ctx: &mut Context) -> Value {
+        // 1. Check built-ins
+        let builtin = ctx.builtins.get(&self.name).copied();
+        if let Some(func) = builtin {
+             let mut arg_values = Vec::new();
+             for arg in &self.args {
+                 arg_values.push(arg.run(ctx));
+             }
+             return func(arg_values);
+        }
+
+        // 2. Check user-defined functions
         if let Some(func) = ctx.functions.get(&self.name) {
              let func_params = func.params.clone();
              let func_body = func.body.clone();

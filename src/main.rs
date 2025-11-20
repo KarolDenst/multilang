@@ -8,14 +8,12 @@ fn main() {
         Program = Stmt*
         Stmt = FunctionDef
         Stmt = FunctionCall
-        Stmt = Print
         Stmt = Return
         FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
         Block = Stmt*
         FunctionCall = name:Identifier "(" args:ArgList ")"
         ParamList = Identifier | Identifier "," ParamList
         ArgList = Expr | Expr "," ArgList
-        Print = "print" Int
         Return = "return" Int
         Expr = Int | Identifier | FunctionCall
         Int = [[0-9]+]
@@ -81,14 +79,19 @@ fn main() {
         ArgList = Expr "," args:ArgList
         ArgList = Expr
         
-        Print = "print" Expr
         Return = "return" Expr
         
-        Expr = Term
+        Expr = LogicalOr
+        LogicalOr = LogicalAnd "||" LogicalOr | LogicalAnd
+        LogicalAnd = Comparison "&&" LogicalAnd | Comparison
+        Comparison = Term CompOp Term | Term
         Term = Factor AddOp Term | Factor
-        Factor = Atom MulOp Factor | Atom
+        Factor = Unary MulOp Factor | Unary
+        Unary = UnaryOp Unary | Atom
         Atom = Float | Int | String | Identifier | FunctionCall | "(" Expr ")"
         
+        UnaryOp = [!]
+        CompOp = [==] | [!=] | [<] | [>]
         AddOp = [\+] | [-]
         MulOp = [\*] | [/]
         
@@ -106,7 +109,7 @@ fn main() {
         fn add(a, b) {
             return a
         }
-        print 100
+        print(100)
         add(10, 20)
     "#;
     // Note: `return a` returns `a`. `a` is Identifier.

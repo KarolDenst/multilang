@@ -15,12 +15,10 @@ fn test_script(grammar_def: &str, input: &str, expected: Value) {
 fn test_return_value() {
     let grammar = r#"
         Program = Stmt*
-        Stmt = Print
         Stmt = Return
-        Print = "print" Int
         Return = "return" Int
         Int = [[0-9]+]
     "#;
-    let input = "print 42 return 100";
+    let input = "return 100";
     test_script(grammar, input, Value::Int(100));
 }
