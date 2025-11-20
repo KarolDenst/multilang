@@ -9,6 +9,8 @@ impl Node for Print {
         let val = self.expression.run(ctx);
         match val {
             Value::Int(i) => println!("{}", i),
+            Value::Float(f) => println!("{}", f),
+            Value::String(s) => println!("{}", s),
             Value::Bool(b) => println!("{}", b),
             Value::Void => println!("(void)"),
         }

@@ -5,6 +5,8 @@ use std::rc::Rc;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Int(i32),
+    Float(f64),
+    String(String),
     Bool(bool),
     Void,
 }

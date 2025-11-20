@@ -66,3 +66,98 @@ fn test_named_fields() {
     // Input: "2 \ 10" -> 10 / 2 = 5
     test_script(grammar, "2 \\ 10", Value::Int(5));
 }
+
+fn run_code(code: &str) -> Value {
+    let grammar_def = r#"
+        Program = Stmt*
+        Stmt = FunctionDef
+        Stmt = FunctionCall
+        Stmt = Print
+        Stmt = Return
+        FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
+        FunctionDef = "fn" name:Identifier "(" ")" "{" body:Block "}"
+        Block = Stmt*
+        FunctionCall = name:Identifier "(" args:ArgList ")"
+        FunctionCall = name:Identifier "(" ")"
+        
+        ParamList = Identifier "," params:ParamList
+        ParamList = Identifier
+        
+        ArgList = Expr "," args:ArgList
+        ArgList = Expr
+        
+        Print = "print" Expr
+        Return = "return" Expr
+        
+        Expr = Term
+        Term = Factor AddOp Term | Factor
+        Factor = Atom MulOp Factor | Atom
+        Atom = Float | Int | String | Identifier | FunctionCall | "(" Expr ")"
+        
+        AddOp = [\+] | [-]
+        MulOp = [\*] | [/]
+        
+        Float = [[0-9]+\.[0-9]+]
+        Int = [[0-9]+]
+        String = ["[^\"]*"]
+        Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
+    "#;
+
+    let grammar = Grammar::parse(grammar_def);
+    let parser = Parser::new(&grammar, code);
+    let node = parser.parse("Program").expect("Failed to parse");
+    let mut ctx = Context::new();
+    node.run(&mut ctx)
+}
+
+#[test]
+fn test_float_literal() {
+    let code = r#"
+        return 3.14
+    "#;
+    let result = run_code(code);
+    if let Value::Float(val) = result {
+        assert!((val - 3.14).abs() < 1e-6);
+    } else {
+        panic!("Expected Float, got {:?}", result);
+    }
+}
+
+#[test]
+fn test_string_literal() {
+    let code = r#"
+        return "hello world"
+    "#;
+    let result = run_code(code);
+    if let Value::String(val) = result {
+        assert_eq!(val, "hello world");
+    } else {
+        panic!("Expected String, got {:?}", result);
+    }
+}
+
+#[test]
+fn test_float_arithmetic() {
+    let code = r#"
+        return 1.5 + 2.5
+    "#;
+    let result = run_code(code);
+    if let Value::Float(val) = result {
+        assert!((val - 4.0).abs() < 1e-6);
+    } else {
+        panic!("Expected Float, got {:?}", result);
+    }
+}
+
+#[test]
+fn test_string_concatenation() {
+    let code = r#"
+        return "hello" + " " + "world"
+    "#;
+    let result = run_code(code);
+    if let Value::String(val) = result {
+        assert_eq!(val, "hello world");
+    } else {
+        panic!("Expected String, got {:?}", result);
+    }
+}

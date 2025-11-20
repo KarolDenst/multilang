@@ -81,10 +81,20 @@ fn main() {
         ArgList = Expr "," args:ArgList
         ArgList = Expr
         
-        Print = "print" Int
+        Print = "print" Expr
         Return = "return" Expr
-        Expr = Int | Identifier | FunctionCall
+        
+        Expr = Term
+        Term = Factor AddOp Term | Factor
+        Factor = Atom MulOp Factor | Atom
+        Atom = Float | Int | String | Identifier | FunctionCall | "(" Expr ")"
+        
+        AddOp = [\+] | [-]
+        MulOp = [\*] | [/]
+        
+        Float = [[0-9]+\.[0-9]+]
         Int = [[0-9]+]
+        String = ["[^\"]*"]
         Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
     "#;
 

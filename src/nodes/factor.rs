@@ -28,18 +28,39 @@ impl Node for Factor {
                     }
                 },
             },
+            (Value::Float(l), Value::Float(r)) => match self.op {
+                MulOp::Mul => Value::Float(l * r),
+                MulOp::Div => Value::Float(l / r),
+            },
             _ => Value::Void,
         }
     }
 
     fn from_children(rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
-        let left = children.take_child("left").unwrap();
-        let right = children.take_child("right").unwrap();
-        let op = match rule_name {
-            "Mul" => MulOp::Mul,
-            "Div" => MulOp::Div,
-            _ => panic!("Unknown rule for Factor: {}", rule_name),
-        };
-        Box::new(Factor { op, left, right })
+        match rule_name {
+            "Mul" | "Div" => {
+                let left = children.take_child("left").or_else(|| children.take_child("")).unwrap();
+                let right = children.take_child("right").or_else(|| children.take_child("")).unwrap();
+                let op = if rule_name == "Mul" { MulOp::Mul } else { MulOp::Div };
+                Box::new(Factor { op, left, right })
+            },
+            _ => {
+                // Factor = Atom MulOp Factor | Atom
+                let left = children.take_child("").unwrap(); // Atom
+                
+                if let Some(op_node) = children.take_child("") { // MulOp
+                    let right = children.take_child("").unwrap(); // Factor
+                    let op_text = op_node.text().unwrap();
+                    let op = match op_text.as_str() {
+                        "*" => MulOp::Mul,
+                        "/" => MulOp::Div,
+                        _ => panic!("Unknown MulOp: {}", op_text),
+                    };
+                    Box::new(Factor { op, left, right })
+                } else {
+                    left
+                }
+            }
+        }
     }
 }
