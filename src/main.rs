@@ -6,7 +6,7 @@ fn main() {
     // 1. Define Grammar
     let grammar_def = r##"
         Program = Stmt*
-        Stmt = FunctionDef | FunctionCall | Print | Return | Assignment
+        Stmt = FunctionDef | FunctionCall | Print | Return | Assignment | ForLoop | WhileLoop
         FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
         FunctionDef = "fn" name:Identifier "(" ")" "{" body:Block "}"
         Block = Stmt*
@@ -14,6 +14,9 @@ fn main() {
         FunctionCall = name:Identifier "(" ")"
         
         Assignment = name:Identifier "=" value:Expr
+        
+        ForLoop = "for" variable:Identifier "in" iterable:Expr "{" body:Block "}"
+        WhileLoop = "while" condition:Expr "{" body:Block "}"
         
         ParamList = Identifier "," params:ParamList
         ParamList = Identifier

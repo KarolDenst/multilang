@@ -3,8 +3,8 @@ use crate::grammar::{Grammar, Pattern};
 use crate::node::{Node, ParsedChildren, Value};
 use crate::nodes::list_node::ElementsNode;
 use crate::nodes::{
-    ArgListNode, Assignment, Block, Comparison, Factor, FunctionCall, FunctionDef, If, ListNode,
-    Literal, Logical, Program, Return, Term, Unary, Variable,
+    ArgListNode, Assignment, Block, Comparison, Factor, ForNode, FunctionCall, FunctionDef, If,
+    ListNode, Literal, Logical, Program, Return, Term, Unary, Variable, WhileNode,
 };
 use regex::Regex;
 
@@ -132,6 +132,8 @@ impl<'a> Parser<'a> {
                         }
                         "ListLiteral" => ListNode::from_children(rule_name, parsed_children),
                         "Elements" => ElementsNode::from_children(rule_name, parsed_children),
+                        "ForLoop" => ForNode::from_children(rule_name, parsed_children),
+                        "WhileLoop" => WhileNode::from_children(rule_name, parsed_children),
                         "Block" => Block::from_children(rule_name, parsed_children),
                         "Identifier" => Variable::from_children(rule_name, parsed_children),
                         "Expr" | "Atom" | "If" | "UnaryOp" | "Eq" | "Neq" | "Lt" | "Gt" | "Add"

@@ -5,7 +5,7 @@ This document lists the planned features and improvements for the project.
 ## Planned Features
 - [x] Improve error messages with line numbers and better context.
 - [x] Assignment operator (`=`).
-- [ ] Add `List` data type.
+- [x] Add `List` data type.
 - [ ] Add loops (for, while).
 - [ ] Add modulo operator.
 - [ ] Add comments.
