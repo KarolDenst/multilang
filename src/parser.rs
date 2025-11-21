@@ -308,8 +308,26 @@ impl<'a> Parser<'a> {
     }
 
     fn skip_whitespace(&self, mut pos: usize) -> usize {
-        while pos < self.input.len() && self.input[pos..].chars().next().unwrap().is_whitespace() {
-            pos += 1;
+        loop {
+            let mut changed = false;
+            // Skip whitespace
+            while pos < self.input.len()
+                && self.input[pos..].chars().next().unwrap().is_whitespace()
+            {
+                pos += 1;
+                changed = true;
+            }
+            // Skip comments
+            if pos < self.input.len() && self.input[pos..].starts_with("//") {
+                while pos < self.input.len() && self.input[pos..].chars().next().unwrap() != '\n' {
+                    pos += 1;
+                }
+                changed = true;
+            }
+
+            if !changed {
+                break;
+            }
         }
         pos
     }
