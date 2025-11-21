@@ -1,3 +1,4 @@
+use crate::error::RuntimeError;
 use crate::node::{Context, Node, Value};
 
 pub struct Return {
@@ -5,7 +6,7 @@ pub struct Return {
 }
 
 impl Node for Return {
-    fn run(&self, ctx: &mut Context) -> Value {
+    fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
         self.expression.run(ctx)
     }
 

@@ -1,3 +1,4 @@
+use crate::error::RuntimeError;
 use crate::node::{Context, Node, ParsedChildren, Value};
 
 pub struct Literal {
@@ -5,8 +6,8 @@ pub struct Literal {
 }
 
 impl Node for Literal {
-    fn run(&self, _ctx: &mut Context) -> Value {
-        self.value.clone()
+    fn run(&self, _ctx: &mut Context) -> Result<Value, RuntimeError> {
+        Ok(self.value.clone())
     }
 
     fn from_children(rule_name: &str, mut children: ParsedChildren) -> Box<dyn Node> {

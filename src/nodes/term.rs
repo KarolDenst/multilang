@@ -1,3 +1,4 @@
+use crate::error::RuntimeError;
 use crate::node::{Context, Node, Value};
 
 #[derive(Debug, Clone, Copy)]
@@ -13,24 +14,33 @@ pub struct Term {
 }
 
 impl Node for Term {
-    fn run(&self, ctx: &mut Context) -> Value {
-        let left_val = self.left.run(ctx);
-        let right_val = self.right.run(ctx);
+    fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
+        let left_val = self.left.run(ctx)?;
+        let right_val = self.right.run(ctx)?;
 
         match (left_val, right_val) {
             (Value::Int(l), Value::Int(r)) => match self.op {
-                AddOp::Add => Value::Int(l + r),
-                AddOp::Sub => Value::Int(l - r),
+                AddOp::Add => Ok(Value::Int(l + r)),
+                AddOp::Sub => Ok(Value::Int(l - r)),
             },
             (Value::Float(l), Value::Float(r)) => match self.op {
-                AddOp::Add => Value::Float(l + r),
-                AddOp::Sub => Value::Float(l - r),
+                AddOp::Add => Ok(Value::Float(l + r)),
+                AddOp::Sub => Ok(Value::Float(l - r)),
             },
             (Value::String(l), Value::String(r)) => match self.op {
-                AddOp::Add => Value::String(l + &r),
-                AddOp::Sub => Value::Void, // Subtraction not supported for strings
+                AddOp::Add => Ok(Value::String(l + &r)),
+                AddOp::Sub => Err(RuntimeError {
+                    message: "Subtraction not supported for strings".to_string(),
+                    stack_trace: vec![],
+                }),
             },
-            _ => Value::Void,
+            (l, r) => Err(RuntimeError {
+                message: format!(
+                    "Invalid operands for addition/subtraction: {:?} and {:?}",
+                    l, r
+                ),
+                stack_trace: vec![],
+            }),
         }
     }
 

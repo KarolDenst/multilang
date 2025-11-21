@@ -1,13 +1,14 @@
 use multilang::grammar::Grammar;
-use multilang::parser::Parser;
 use multilang::node::{Context, Value};
+use multilang::parser::Parser;
 
 fn test_script(grammar_def: &str, input: &str, expected: Value) {
     let grammar = Grammar::parse(grammar_def);
     let parser = Parser::new(&grammar, input);
     let program_node = parser.parse("Program").expect("Parsing failed");
     let mut ctx = Context::new();
-    let result = program_node.run(&mut ctx);
+    let mut ctx = Context::new();
+    let result = program_node.run(&mut ctx).expect("Runtime error");
     assert_eq!(result, expected);
 }
 
@@ -26,7 +27,7 @@ fn test_arithmetic_basic() {
         Div = [/]
         Int = [[0-9]+]
     "#;
-    
+
     test_script(grammar, "1 + 2", Value::Int(3));
     test_script(grammar, "5 - 2", Value::Int(3));
     test_script(grammar, "3 * 4", Value::Int(12));
@@ -49,14 +50,12 @@ fn test_arithmetic_precedence() {
         Div = [/]
         Int = [[0-9]+]
     "#;
-    
+
     // 2 + 3 * 4 = 14 (not 20)
     test_script(grammar, "2 + 3 * 4", Value::Int(14));
     // 2 * 3 + 4 = 10
     test_script(grammar, "2 * 3 + 4", Value::Int(10));
 }
-
-
 
 fn run_code(code: &str) -> Value {
     let grammar_def = r#"
@@ -97,7 +96,7 @@ fn run_code(code: &str) -> Value {
     let parser = Parser::new(&grammar, code);
     let node = parser.parse("Program").expect("Failed to parse");
     let mut ctx = Context::new();
-    node.run(&mut ctx)
+    node.run(&mut ctx).expect("Runtime error")
 }
 
 #[test]

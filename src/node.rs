@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use std::rc::Rc;
 
+use crate::error::RuntimeError;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Int(i32),
@@ -17,7 +19,7 @@ pub struct Function {
     pub body: Rc<dyn Node>,
 }
 
-pub type BuiltInFunction = fn(Vec<Value>) -> Value;
+pub type BuiltInFunction = fn(Vec<Value>) -> Result<Value, RuntimeError>;
 
 pub struct Context {
     // For now, context can be empty or hold variables later
@@ -41,7 +43,7 @@ impl Context {
 }
 
 pub trait Node {
-    fn run(&self, ctx: &mut Context) -> Value;
+    fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError>;
     fn text(&self) -> Option<String> {
         None
     }
@@ -71,11 +73,12 @@ impl Clone for Box<dyn Node> {
 
 pub struct ParsedChildren {
     pub children: Vec<(Option<String>, Box<dyn Node>)>,
+    pub line: usize,
 }
 
 impl ParsedChildren {
-    pub fn new(children: Vec<(Option<String>, Box<dyn Node>)>) -> Self {
-        Self { children }
+    pub fn new(children: Vec<(Option<String>, Box<dyn Node>)>, line: usize) -> Self {
+        Self { children, line }
     }
 
     pub fn take_child(&mut self, name: &str) -> Option<Box<dyn Node>> {

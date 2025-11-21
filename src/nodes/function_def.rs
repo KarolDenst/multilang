@@ -1,3 +1,4 @@
+use crate::error::RuntimeError;
 use crate::node::{Context, Node, Value};
 use std::rc::Rc;
 
@@ -5,10 +6,11 @@ pub struct FunctionDef {
     pub name: String,
     pub params: Vec<String>,
     pub body: Rc<dyn Node>,
+    pub line: usize,
 }
 
 impl Node for FunctionDef {
-    fn run(&self, ctx: &mut Context) -> Value {
+    fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
         ctx.functions.insert(
             self.name.clone(),
             crate::node::Function {
@@ -16,10 +18,11 @@ impl Node for FunctionDef {
                 body: self.body.clone(),
             },
         );
-        Value::Void
+        Ok(Value::Void)
     }
 
     fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+        let line = children.line;
         let name_node = children.take_child("name").unwrap();
         let name = name_node.text().unwrap_or_default();
 
@@ -35,6 +38,7 @@ impl Node for FunctionDef {
             name,
             params,
             body: Rc::from(body),
+            line,
         })
     }
 
@@ -43,6 +47,7 @@ impl Node for FunctionDef {
             name: self.name.clone(),
             params: self.params.clone(),
             body: self.body.clone(),
+            line: self.line,
         })
     }
 }

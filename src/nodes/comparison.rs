@@ -1,3 +1,4 @@
+use crate::error::RuntimeError;
 use crate::node::{Context, Node, Value};
 
 #[derive(Debug, Clone, Copy)]
@@ -15,9 +16,9 @@ pub struct Comparison {
 }
 
 impl Node for Comparison {
-    fn run(&self, ctx: &mut Context) -> Value {
-        let left_val = self.left.run(ctx);
-        let right_val = self.right.run(ctx);
+    fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
+        let left_val = self.left.run(ctx)?;
+        let right_val = self.right.run(ctx)?;
 
         let result = match (&left_val, &right_val) {
             (Value::Int(l), Value::Int(r)) => match self.op {
@@ -44,18 +45,25 @@ impl Node for Comparison {
                 CompOp::Less => l < r, // False < True
                 CompOp::Greater => l > r,
             },
-            _ => {
-                // Type mismatch or unsupported types, return False (or maybe Void/Error?)
-                // For now, let's say they are not equal, and comparison fails for ordering.
+            (l, r) => {
+                // For equality, we can say they are not equal if types differ
                 match self.op {
                     CompOp::Equal => false,
                     CompOp::NotEqual => true,
-                    _ => false, // Cannot compare order of different types
+                    _ => {
+                        return Err(RuntimeError {
+                            message: format!(
+                                "Invalid operands for comparison: {:?} and {:?}",
+                                l, r
+                            ),
+                            stack_trace: vec![],
+                        });
+                    }
                 }
             }
         };
 
-        Value::Bool(result)
+        Ok(Value::Bool(result))
     }
 
     fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {

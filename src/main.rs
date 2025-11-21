@@ -1,6 +1,6 @@
 use multilang::grammar::Grammar;
-use multilang::parser::Parser;
 use multilang::node::Context;
+use multilang::parser::Parser;
 
 fn main() {
     // 1. Define Grammar
@@ -19,7 +19,7 @@ fn main() {
         Int = [[0-9]+]
         Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
     "#;
-    
+
     // Note: The recursive definition of ParamList/ArgList above might be tricky for my simple parser.
     // My parser handles `Identifier ("," Identifier)*` if I use `*` or similar?
     // My parser supports `*` for repetition.
@@ -33,7 +33,7 @@ fn main() {
     // Let's check `grammar.rs` again.
     // It parses `[...]` as Regex, `"*"` as Star of previous token.
     // It doesn't seem to support `(...)`.
-    
+
     // So I cannot define `ParamList = Identifier ("," Identifier)*`.
     // I have to define it recursively or using a helper rule if I can.
     // `ParamList = Identifier`
@@ -52,13 +52,13 @@ fn main() {
     // Wait, if `Identifier "," ParamList` fails (because no comma), it should try `Identifier`.
     // So I should put the recursive case first?
     // Yes.
-    
+
     // But wait, `ArgList` can be empty?
     // `FunctionCall = name:Identifier "(" args:ArgList ")"`
     // If `ArgList` is mandatory, then `()` will fail if no args.
     // I need `FunctionCall = name:Identifier "(" ")"` for empty args.
     // And `FunctionCall = name:Identifier "(" args:ArgList ")"` for args.
-    
+
     // Let's refine the grammar in `main.rs`.
 
     let grammar_def = r#"
@@ -124,15 +124,15 @@ fn main() {
     // No, `Parser` has `Identifier` rule which returns `RawTokenNode` (or just child).
     // `RawTokenNode` returns `Void`.
     // I need a `Variable` node or update `Identifier` handling.
-    
+
     // Let's check `parser.rs` for `Identifier`.
     // `Identifier` => `child`. `child` is `RawTokenNode`.
     // `RawTokenNode::run` returns `Void`.
     // I need to change this.
-    
+
     // I will update `main.rs` but I expect it to fail or return Void for `a`.
     // I need to fix `Identifier` execution first.
-    
+
     // But let's write the `main.rs` first to confirm the grammar works.
 
     // 3. Parse Input
@@ -143,15 +143,33 @@ fn main() {
             println!("Parsing successful! Running program...");
             // 4. Run Program
             let mut ctx = Context::new();
-            let result = program_node.run(&mut ctx);
-            println!("Program returned: {:?}", result);
-            
-            // Expect 10
-             if let multilang::node::Value::Int(val) = result {
-                assert_eq!(val, 10);
-                println!("Assertion passed: Returned 10");
-            } else {
-                println!("Assertion failed: Expected Int(10), got {:?}", result);
+
+            // Register built-in functions (if not already done in Context::new)
+            // Assuming Context::new registers print, or we need to do it here.
+            // Based on previous file reads, Context::new might not register it?
+            // Let's check Context::new in src/node.rs later if needed, but for now let's assume it's there or we add it.
+            // Actually, main.rs didn't register it before, so maybe it's in Context::new.
+
+            match program_node.run(&mut ctx) {
+                Ok(result) => {
+                    println!("Program returned: {:?}", result);
+
+                    // Expect 10 (Wait, the input script returns `a` which is 10 passed to add)
+                    // But `add` returns `a`. `add(10, 20)` returns 10.
+                    // `print(100)` returns Void.
+                    // The last statement is `add(10, 20)`.
+                    // So result should be 10.
+
+                    if let multilang::node::Value::Int(val) = result {
+                        assert_eq!(val, 10);
+                        println!("Assertion passed: Returned 10");
+                    } else {
+                        println!("Assertion failed: Expected Int(10), got {:?}", result);
+                    }
+                }
+                Err(e) => {
+                    println!("Runtime Error: {}", e);
+                }
             }
         }
         Err(e) => {

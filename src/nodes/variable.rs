@@ -1,3 +1,4 @@
+use crate::error::RuntimeError;
 use crate::node::{Context, Node, Value};
 
 pub struct Variable {
@@ -5,12 +6,14 @@ pub struct Variable {
 }
 
 impl Node for Variable {
-    fn run(&self, ctx: &mut Context) -> Value {
+    fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
         if let Some(val) = ctx.variables.get(&self.name) {
-            val.clone()
+            Ok(val.clone())
         } else {
-            println!("Runtime Error: Variable '{}' not found", self.name);
-            Value::Void
+            Err(RuntimeError {
+                message: format!("Variable '{}' not found", self.name),
+                stack_trace: vec![],
+            })
         }
     }
 

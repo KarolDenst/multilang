@@ -1,3 +1,4 @@
+use crate::error::RuntimeError;
 use crate::node::{Context, Node, Value};
 
 pub struct ListNode {
@@ -6,8 +7,8 @@ pub struct ListNode {
 }
 
 impl Node for ListNode {
-    fn run(&self, _ctx: &mut Context) -> Value {
-        Value::Void
+    fn run(&self, _ctx: &mut Context) -> Result<Value, RuntimeError> {
+        Ok(Value::Void)
     }
 
     fn params(&self) -> Option<Vec<String>> {

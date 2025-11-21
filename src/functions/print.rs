@@ -1,6 +1,7 @@
+use crate::error::RuntimeError;
 use crate::node::Value;
 
-pub fn print_fn(args: Vec<Value>) -> Value {
+pub fn print_fn(args: Vec<Value>) -> Result<Value, RuntimeError> {
     for (i, arg) in args.iter().enumerate() {
         if i > 0 {
             print!(" ");
@@ -14,5 +15,5 @@ pub fn print_fn(args: Vec<Value>) -> Value {
         }
     }
     println!();
-    Value::Void
+    Ok(Value::Void)
 }

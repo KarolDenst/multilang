@@ -1,3 +1,4 @@
+use crate::error::RuntimeError;
 use crate::node::{Context, Node, Value};
 
 pub struct Program {
@@ -5,12 +6,12 @@ pub struct Program {
 }
 
 impl Node for Program {
-    fn run(&self, ctx: &mut Context) -> Value {
+    fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
         let mut last_val = Value::Void;
         for stmt in &self.children {
-            last_val = stmt.run(ctx);
+            last_val = stmt.run(ctx)?;
         }
-        last_val
+        Ok(last_val)
     }
 
     fn from_children(

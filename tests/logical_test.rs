@@ -42,7 +42,7 @@ fn run_code(code: &str) -> Value {
     let parser = Parser::new(&grammar, code);
     let node = parser.parse("Program").expect("Failed to parse");
     let mut ctx = Context::new();
-    node.run(&mut ctx)
+    node.run(&mut ctx).expect("Runtime error")
 }
 
 #[test]

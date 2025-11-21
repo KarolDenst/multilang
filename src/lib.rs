@@ -1,5 +1,6 @@
+pub mod error;
+pub mod functions;
+pub mod grammar;
 pub mod node;
 pub mod nodes;
-pub mod grammar;
 pub mod parser;
-pub mod functions;

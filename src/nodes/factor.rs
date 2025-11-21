@@ -1,3 +1,4 @@
+use crate::error::RuntimeError;
 use crate::node::{Context, Node, Value};
 
 #[derive(Debug, Clone, Copy)]
@@ -13,26 +14,35 @@ pub struct Factor {
 }
 
 impl Node for Factor {
-    fn run(&self, ctx: &mut Context) -> Value {
-        let left_val = self.left.run(ctx);
-        let right_val = self.right.run(ctx);
+    fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
+        let left_val = self.left.run(ctx)?;
+        let right_val = self.right.run(ctx)?;
 
         match (left_val, right_val) {
             (Value::Int(l), Value::Int(r)) => match self.op {
-                MulOp::Mul => Value::Int(l * r),
+                MulOp::Mul => Ok(Value::Int(l * r)),
                 MulOp::Div => {
                     if r == 0 {
-                        Value::Void // TODO: Throw error in case of div by 0
+                        Err(RuntimeError {
+                            message: "Division by zero".to_string(),
+                            stack_trace: vec![],
+                        })
                     } else {
-                        Value::Int(l / r)
+                        Ok(Value::Int(l / r))
                     }
                 }
             },
             (Value::Float(l), Value::Float(r)) => match self.op {
-                MulOp::Mul => Value::Float(l * r),
-                MulOp::Div => Value::Float(l / r),
+                MulOp::Mul => Ok(Value::Float(l * r)),
+                MulOp::Div => Ok(Value::Float(l / r)),
             },
-            _ => Value::Void,
+            (l, r) => Err(RuntimeError {
+                message: format!(
+                    "Invalid operands for multiplication/division: {:?} and {:?}",
+                    l, r
+                ),
+                stack_trace: vec![],
+            }),
         }
     }
 

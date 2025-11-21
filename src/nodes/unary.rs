@@ -1,3 +1,4 @@
+use crate::error::RuntimeError;
 use crate::node::{Context, Node, Value};
 
 #[derive(Debug, Clone, Copy)]
@@ -11,14 +12,17 @@ pub struct Unary {
 }
 
 impl Node for Unary {
-    fn run(&self, ctx: &mut Context) -> Value {
-        let val = self.expr.run(ctx);
+    fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
+        let val = self.expr.run(ctx)?;
         match self.op {
             UnaryOp::Not => {
                 if let Value::Bool(b) = val {
-                    Value::Bool(!b)
+                    Ok(Value::Bool(!b))
                 } else {
-                    panic!("Expected boolean for unary NOT");
+                    Err(RuntimeError {
+                        message: format!("Expected boolean for unary NOT, got {:?}", val),
+                        stack_trace: vec![],
+                    })
                 }
             }
         }

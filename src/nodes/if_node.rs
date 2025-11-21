@@ -1,3 +1,4 @@
+use crate::error::RuntimeError;
 use crate::node::{Context, Node, Value};
 
 pub struct If {
@@ -7,8 +8,8 @@ pub struct If {
 }
 
 impl Node for If {
-    fn run(&self, ctx: &mut Context) -> Value {
-        let condition_val = self.condition.run(ctx);
+    fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
+        let condition_val = self.condition.run(ctx)?;
 
         let is_true = match condition_val {
             Value::Bool(b) => b,
@@ -21,7 +22,7 @@ impl Node for If {
         } else if let Some(else_block) = &self.else_block {
             else_block.run(ctx)
         } else {
-            Value::Void
+            Ok(Value::Void)
         }
     }
 

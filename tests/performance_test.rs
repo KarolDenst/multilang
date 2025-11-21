@@ -63,7 +63,7 @@ fn run_code_with_time(code: &str) -> Value {
 
     let start_run = std::time::Instant::now();
     let mut ctx = Context::new();
-    let res = node.run(&mut ctx);
+    let res = node.run(&mut ctx).expect("Runtime error");
     println!("Execution time: {:?}", start_run.elapsed());
 
     res

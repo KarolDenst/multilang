@@ -1,5 +1,6 @@
+use crate::error::{ParseError, RuntimeError};
 use crate::grammar::{Grammar, Pattern};
-use crate::node::Node;
+use crate::node::{Node, ParsedChildren, Value};
 use crate::nodes::{
     Block, Comparison, Factor, FunctionCall, FunctionDef, If, ListNode, Literal, Logical, Program,
     Return, Term, Unary, Variable,
@@ -24,42 +25,88 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn parse(&self, rule_name: &str) -> Result<Box<dyn Node>, String> {
-        let (node, _) = self.parse_rule(rule_name, 0)?;
+    pub fn parse(&self, rule_name: &str) -> Result<Box<dyn Node>, ParseError> {
+        let (node, pos) = self.parse_rule(rule_name, 0)?;
+        let final_pos = self.skip_whitespace(pos);
+        if final_pos < self.input.len() {
+            let (line, col, line_content) = self.get_location(final_pos);
+            return Err(ParseError {
+                message: format!("Unexpected token at end of input"),
+                line,
+                column: col,
+                line_content,
+            });
+        }
         Ok(node)
     }
 
-    fn parse_rule(&self, rule_name: &str, pos: usize) -> Result<(Box<dyn Node>, usize), String> {
+    fn get_location(&self, pos: usize) -> (usize, usize, String) {
+        let mut line = 1;
+        let mut col = 1;
+        let mut last_newline = 0;
+        for (i, c) in self.input.char_indices() {
+            if i == pos {
+                break;
+            }
+            if c == '\n' {
+                line += 1;
+                col = 1;
+                last_newline = i + 1;
+            } else {
+                col += 1;
+            }
+        }
+        // Extract line content
+        let end_of_line = self.input[last_newline..]
+            .find('\n')
+            .map(|i| last_newline + i)
+            .unwrap_or(self.input.len());
+        let line_content = self.input[last_newline..end_of_line].to_string();
+        (line, col, line_content)
+    }
+
+    fn parse_rule(
+        &self,
+        rule_name: &str,
+        pos: usize,
+    ) -> Result<(Box<dyn Node>, usize), ParseError> {
         // Check cache
         let key = (rule_name.to_string(), pos);
         if let Some(cached) = self.cache.borrow().get(&key) {
             return match cached {
                 Some((node, new_pos)) => Ok((node.box_clone(), *new_pos)),
-                None => Err(format!(
-                    "Parsing failed for rule {} at pos {}",
-                    rule_name, pos
-                )),
+                None => {
+                    let (line, col, line_content) = self.get_location(pos);
+                    Err(ParseError {
+                        message: format!("Parsing failed for rule {} at pos {}", rule_name, pos),
+                        line,
+                        column: col,
+                        line_content,
+                    })
+                }
             };
         }
 
-        let rules = self
-            .grammar
-            .rules
-            .get(rule_name)
-            .ok_or_else(|| format!("Rule not found: {}", rule_name))?;
+        let rules = self.grammar.rules.get(rule_name).ok_or_else(|| {
+            let (line, col, line_content) = self.get_location(pos);
+            ParseError {
+                message: format!("Rule not found: {}", rule_name),
+                line,
+                column: col,
+                line_content,
+            }
+        })?;
 
         for rule in rules {
             match self.parse_sequence(&rule.patterns, pos) {
                 Ok((children_with_names, new_pos)) => {
-                    // if rule_name == "Comparison" {
-                    //    println!("Matched Comparison with {} children", children_with_names.len());
-                    // }
                     // Helper to extract children
                     // children_with_names is Vec<(Option<String>, Box<dyn Node>)>
 
                     // Better strategy: Convert children to a workable structure
                     // We have ownership of children_with_names here.
-                    let parsed_children = crate::node::ParsedChildren::new(children_with_names);
+                    let (line, _, _) = self.get_location(pos);
+                    let parsed_children = ParsedChildren::new(children_with_names, line);
 
                     let node: Box<dyn Node> = match rule_name {
                         "Program" => Program::from_children(rule_name, parsed_children),
@@ -102,14 +149,20 @@ impl<'a> Parser<'a> {
 
         // Cache failure
         self.cache.borrow_mut().insert(key, None);
-        Err(format!("No rules matched for {}", rule_name))
+        let (line, col, line_content) = self.get_location(pos);
+        Err(ParseError {
+            message: format!("No rules matched for {}", rule_name),
+            line,
+            column: col,
+            line_content,
+        })
     }
 
     fn parse_sequence(
         &self,
         patterns: &[Pattern],
         mut pos: usize,
-    ) -> Result<(Vec<(Option<String>, Box<dyn Node>)>, usize), String> {
+    ) -> Result<(Vec<(Option<String>, Box<dyn Node>)>, usize), ParseError> {
         let mut children: Vec<(Option<String>, Box<dyn Node>)> = Vec::new();
 
         for pattern in patterns {
@@ -120,11 +173,25 @@ impl<'a> Parser<'a> {
                     if self.input[pos..].starts_with(s) {
                         pos += len;
                     } else {
-                        return Err(format!("Expected literal '{}'", s));
+                        let (line, col, line_content) = self.get_location(pos);
+                        return Err(ParseError {
+                            message: format!("Expected literal '{}'", s),
+                            line,
+                            column: col,
+                            line_content,
+                        });
                     }
                 }
                 Pattern::Regex(r) => {
-                    let re = Regex::new(&format!("^{}", r)).map_err(|e| e.to_string())?;
+                    let re = Regex::new(&format!("^{}", r)).map_err(|e| {
+                        let (line, col, line_content) = self.get_location(pos);
+                        ParseError {
+                            message: e.to_string(),
+                            line,
+                            column: col,
+                            line_content,
+                        }
+                    })?;
                     if let Some(mat) = re.find(&self.input[pos..]) {
                         let text = mat.as_str();
                         children.push((
@@ -135,7 +202,13 @@ impl<'a> Parser<'a> {
                         ));
                         pos += mat.end();
                     } else {
-                        return Err(format!("Expected regex match '{}'", r));
+                        let (line, col, line_content) = self.get_location(pos);
+                        return Err(ParseError {
+                            message: format!("Expected regex match '{}'", r),
+                            line,
+                            column: col,
+                            line_content,
+                        });
                     }
                 }
                 Pattern::RuleReference(name) => {
@@ -143,48 +216,65 @@ impl<'a> Parser<'a> {
                     children.push((None, node));
                     pos = new_pos;
                 }
-                Pattern::Named(name, sub_pattern) => {
-                    // Handle named pattern: recurse but wrap result with name
-                    // But parse_sequence loop handles patterns.
-                    // We need to handle the sub_pattern logic here.
-                    // Refactor: Extract matching logic?
-                    // Or just inline for now.
-                    // Only Literal, Regex, RuleReference are likely inside Named.
-                    match &**sub_pattern {
-                        Pattern::Literal(s) => {
-                            // Literals usually don't produce nodes.
-                            // If named, maybe we should? But for now ignore name on literal?
-                            // Or create a TokenNode?
-                            let len = s.len();
-                            if self.input[pos..].starts_with(s) {
-                                pos += len;
-                            } else {
-                                return Err(format!("Expected literal '{}'", s));
-                            }
+                Pattern::Named(name, sub_pattern) => match &**sub_pattern {
+                    Pattern::Literal(s) => {
+                        let len = s.len();
+                        if self.input[pos..].starts_with(s) {
+                            pos += len;
+                        } else {
+                            let (line, col, line_content) = self.get_location(pos);
+                            return Err(ParseError {
+                                message: format!("Expected literal '{}'", s),
+                                line,
+                                column: col,
+                                line_content,
+                            });
                         }
-                        Pattern::Regex(r) => {
-                            let re = Regex::new(&format!("^{}", r)).map_err(|e| e.to_string())?;
-                            if let Some(mat) = re.find(&self.input[pos..]) {
-                                let text = mat.as_str();
-                                children.push((
-                                    Some(name.clone()),
-                                    Box::new(RawTokenNode {
-                                        text: text.to_string(),
-                                    }),
-                                ));
-                                pos += mat.end();
-                            } else {
-                                return Err(format!("Expected regex match '{}'", r));
-                            }
-                        }
-                        Pattern::RuleReference(ref_name) => {
-                            let (node, new_pos) = self.parse_rule(ref_name, pos)?;
-                            children.push((Some(name.clone()), node));
-                            pos = new_pos;
-                        }
-                        _ => return Err("Unsupported pattern inside Named".to_string()),
                     }
-                }
+                    Pattern::Regex(r) => {
+                        let re = Regex::new(&format!("^{}", r)).map_err(|e| {
+                            let (line, col, line_content) = self.get_location(pos);
+                            ParseError {
+                                message: e.to_string(),
+                                line,
+                                column: col,
+                                line_content,
+                            }
+                        })?;
+                        if let Some(mat) = re.find(&self.input[pos..]) {
+                            let text = mat.as_str();
+                            children.push((
+                                Some(name.clone()),
+                                Box::new(RawTokenNode {
+                                    text: text.to_string(),
+                                }),
+                            ));
+                            pos += mat.end();
+                        } else {
+                            let (line, col, line_content) = self.get_location(pos);
+                            return Err(ParseError {
+                                message: format!("Expected regex match '{}'", r),
+                                line,
+                                column: col,
+                                line_content,
+                            });
+                        }
+                    }
+                    Pattern::RuleReference(ref_name) => {
+                        let (node, new_pos) = self.parse_rule(ref_name, pos)?;
+                        children.push((Some(name.clone()), node));
+                        pos = new_pos;
+                    }
+                    _ => {
+                        let (line, col, line_content) = self.get_location(pos);
+                        return Err(ParseError {
+                            message: "Unsupported pattern inside Named".to_string(),
+                            line,
+                            column: col,
+                            line_content,
+                        });
+                    }
+                },
                 Pattern::Star(sub_pattern) => loop {
                     match &**sub_pattern {
                         Pattern::RuleReference(name) => match self.parse_rule(name, pos) {
@@ -194,7 +284,15 @@ impl<'a> Parser<'a> {
                             }
                             Err(_) => break,
                         },
-                        _ => return Err("Only *Rule supported for now".to_string()),
+                        _ => {
+                            let (line, col, line_content) = self.get_location(pos);
+                            return Err(ParseError {
+                                message: "Only *Rule supported for now".to_string(),
+                                line,
+                                column: col,
+                                line_content,
+                            });
+                        }
                     }
                 },
             }
@@ -217,15 +315,15 @@ struct RawTokenNode {
 }
 
 impl Node for RawTokenNode {
-    fn run(&self, _ctx: &mut crate::node::Context) -> crate::node::Value {
-        crate::node::Value::Void
+    fn run(&self, _ctx: &mut crate::node::Context) -> Result<Value, RuntimeError> {
+        Ok(Value::Void)
     }
 
     fn text(&self) -> Option<String> {
         Some(self.text.clone())
     }
 
-    fn from_children(_rule_name: &str, _children: crate::node::ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule_name: &str, _children: ParsedChildren) -> Box<dyn Node> {
         panic!("RawTokenNode should not be created from children");
     }
 

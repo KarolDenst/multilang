@@ -1,3 +1,4 @@
+use crate::error::RuntimeError;
 use crate::node::{Context, Node, Value};
 
 #[derive(Debug, Clone, Copy)]
@@ -13,40 +14,52 @@ pub struct Logical {
 }
 
 impl Node for Logical {
-    fn run(&self, ctx: &mut Context) -> Value {
-        let left_val = self.left.run(ctx);
+    fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
+        let left_val = self.left.run(ctx)?;
 
         match self.op {
             LogOp::And => {
                 if let Value::Bool(b) = left_val {
                     if !b {
-                        return Value::Bool(false);
+                        return Ok(Value::Bool(false));
                     }
                 } else {
-                    panic!("Expected boolean for logical AND");
+                    return Err(RuntimeError {
+                        message: format!("Expected boolean for logical AND, got {:?}", left_val),
+                        stack_trace: vec![],
+                    });
                 }
 
-                let right_val = self.right.run(ctx);
+                let right_val = self.right.run(ctx)?;
                 if let Value::Bool(b) = right_val {
-                    Value::Bool(b)
+                    Ok(Value::Bool(b))
                 } else {
-                    panic!("Expected boolean for logical AND");
+                    Err(RuntimeError {
+                        message: format!("Expected boolean for logical AND, got {:?}", right_val),
+                        stack_trace: vec![],
+                    })
                 }
             }
             LogOp::Or => {
                 if let Value::Bool(b) = left_val {
                     if b {
-                        return Value::Bool(true);
+                        return Ok(Value::Bool(true));
                     }
                 } else {
-                    panic!("Expected boolean for logical OR");
+                    return Err(RuntimeError {
+                        message: format!("Expected boolean for logical OR, got {:?}", left_val),
+                        stack_trace: vec![],
+                    });
                 }
 
-                let right_val = self.right.run(ctx);
+                let right_val = self.right.run(ctx)?;
                 if let Value::Bool(b) = right_val {
-                    Value::Bool(b)
+                    Ok(Value::Bool(b))
                 } else {
-                    panic!("Expected boolean for logical OR");
+                    Err(RuntimeError {
+                        message: format!("Expected boolean for logical OR, got {:?}", right_val),
+                        stack_trace: vec![],
+                    })
                 }
             }
         }
