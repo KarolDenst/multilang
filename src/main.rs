@@ -30,7 +30,13 @@ fn main() {
         Term = Factor Add Term | Factor Sub Term | Factor
         Factor = Unary Mul Factor | Unary Div Factor | Unary
         Unary = UnaryOp Unary | Atom
-        Atom = Float | Int | String | FunctionCall | Identifier | "(" Expr ")"
+        Atom = Float | Int | String | FunctionCall | Identifier | ListLiteral | "(" Expr ")"
+        
+        ListLiteral = "[" Elements "]"
+        ListLiteral = "[" "]"
+        
+        Elements = Expr "," Elements
+        Elements = Expr
         
         UnaryOp = [!]
         Eq = [==]

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::RuntimeError;
@@ -10,6 +11,7 @@ pub enum Value {
     Float(f64),
     String(String),
     Bool(bool),
+    List(Rc<RefCell<Vec<Value>>>),
     Void,
 }
 
@@ -38,6 +40,62 @@ impl Context {
         // Register built-ins
         ctx.builtins
             .insert("print".to_string(), crate::functions::print::print_fn);
+
+        ctx.builtins.insert("append".to_string(), |args| {
+            if args.len() != 2 {
+                return Err(RuntimeError {
+                    message: format!("append expects 2 arguments, got {}", args.len()),
+                    stack_trace: vec![],
+                });
+            }
+            if let Value::List(list) = &args[0] {
+                list.borrow_mut().push(args[1].clone());
+                Ok(Value::Void)
+            } else {
+                Err(RuntimeError {
+                    message: "First argument to append must be a list".to_string(),
+                    stack_trace: vec![],
+                })
+            }
+        });
+
+        ctx.builtins.insert("get".to_string(), |args| {
+            if args.len() != 2 {
+                return Err(RuntimeError {
+                    message: format!("get expects 2 arguments, got {}", args.len()),
+                    stack_trace: vec![],
+                });
+            }
+            let list = match &args[0] {
+                Value::List(l) => l.borrow(),
+                _ => {
+                    return Err(RuntimeError {
+                        message: "First argument to get must be a list".to_string(),
+                        stack_trace: vec![],
+                    });
+                }
+            };
+
+            let index = match &args[1] {
+                Value::Int(i) => *i as usize,
+                _ => {
+                    return Err(RuntimeError {
+                        message: "Second argument to get must be an integer".to_string(),
+                        stack_trace: vec![],
+                    });
+                }
+            };
+
+            if index >= list.len() {
+                return Err(RuntimeError {
+                    message: format!("Index {} out of bounds (len {})", index, list.len()),
+                    stack_trace: vec![],
+                });
+            }
+
+            Ok(list[index].clone())
+        });
+
         ctx
     }
 }
@@ -54,6 +112,12 @@ pub trait Node {
         false
     }
     fn into_args(self: Box<Self>) -> Vec<Box<dyn Node>> {
+        vec![]
+    }
+    fn is_list_elements(&self) -> bool {
+        false
+    }
+    fn into_list_elements(self: Box<Self>) -> Vec<Box<dyn Node>> {
         vec![]
     }
 

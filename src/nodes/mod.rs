@@ -1,3 +1,4 @@
+pub mod arg_list_node;
 pub mod assignment;
 pub mod block;
 pub mod comparison;
@@ -14,6 +15,7 @@ pub mod term;
 pub mod unary;
 pub mod variable;
 
+pub use arg_list_node::ArgListNode;
 pub use assignment::Assignment;
 pub use block::Block;
 pub use comparison::Comparison;
