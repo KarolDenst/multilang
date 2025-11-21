@@ -3,12 +3,13 @@
 This document lists the planned features and improvements for the project.
 
 ## Planned Features
-- [ ] Improve error messages with line numbers and better context.
+- [x] Improve error messages with line numbers and better context.
+- [x] Assignment operator (`=`).
+- [ ] Add `List` data type.
 - [ ] Add loops (for, while).
 - [ ] Add modulo operator.
 - [ ] Add comments.
 - [ ] Add support for structs/classes and object-oriented programming.
-- [ ] Add `List` data type.
 - [ ] Add `String` indexing.
 - [ ] Add `Map` (Dictionary) data type.
 - [ ] Add more built-in functions (e.g., `len`, `input`, string manipulation).

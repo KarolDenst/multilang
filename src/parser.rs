@@ -2,8 +2,8 @@ use crate::error::{ParseError, RuntimeError};
 use crate::grammar::{Grammar, Pattern};
 use crate::node::{Node, ParsedChildren, Value};
 use crate::nodes::{
-    Block, Comparison, Factor, FunctionCall, FunctionDef, If, ListNode, Literal, Logical, Program,
-    Return, Term, Unary, Variable,
+    Assignment, Block, Comparison, Factor, FunctionCall, FunctionDef, If, ListNode, Literal,
+    Logical, Program, Return, Term, Unary, Variable,
 };
 use regex::Regex;
 
@@ -111,6 +111,7 @@ impl<'a> Parser<'a> {
                     let node: Box<dyn Node> = match rule_name {
                         "Program" => Program::from_children(rule_name, parsed_children),
                         "Stmt" => parsed_children.remaining().into_iter().next().unwrap().1,
+                        "Assignment" => Assignment::from_children(rule_name, parsed_children),
                         "Return" => Return::from_children(rule_name, parsed_children),
                         "Comparison" => Comparison::from_children(rule_name, parsed_children),
                         "LogicalOr" | "LogicalAnd" => {

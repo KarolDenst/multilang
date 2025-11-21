@@ -7,11 +7,12 @@ pub struct Program {
 
 impl Node for Program {
     fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
-        let mut last_val = Value::Void;
+        let mut last_value = Value::Void;
         for stmt in &self.children {
-            last_val = stmt.run(ctx)?;
+            // Changed from self.statements to self.children to match struct definition
+            last_value = stmt.run(ctx)?;
         }
-        Ok(last_val)
+        Ok(last_value)
     }
 
     fn from_children(

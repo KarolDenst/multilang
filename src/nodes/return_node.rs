@@ -11,7 +11,7 @@ impl Node for Return {
     }
 
     fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
-        let expr = children.take_child("expression").unwrap();
+        let expr = children.take_child("value").expect("Return missing value");
         Box::new(Return { expression: expr })
     }
 

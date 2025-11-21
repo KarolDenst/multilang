@@ -2,22 +2,33 @@ use crate::error::RuntimeError;
 use crate::node::{Context, Node, Value};
 
 pub struct Block {
-    pub program: Box<dyn Node>,
+    pub statements: Vec<Box<dyn Node>>,
 }
 
 impl Node for Block {
     fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
-        self.program.run(ctx)
+        let mut last_value = Value::Void;
+        for stmt in &self.statements {
+            last_value = stmt.run(ctx)?;
+        }
+        Ok(last_value)
     }
 
-    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
-        let program = children.take_child("").unwrap();
-        Box::new(Block { program })
+    fn from_children(
+        _rule_name: &str,
+        parsed_children: crate::node::ParsedChildren,
+    ) -> Box<dyn Node> {
+        let statements = parsed_children
+            .remaining()
+            .into_iter()
+            .map(|(_, node)| node)
+            .collect();
+        Box::new(Block { statements })
     }
 
     fn box_clone(&self) -> Box<dyn Node> {
         Box::new(Block {
-            program: self.program.box_clone(), // Use box_clone on the inner node
+            statements: self.statements.iter().map(|s| s.box_clone()).collect(),
         })
     }
 }
