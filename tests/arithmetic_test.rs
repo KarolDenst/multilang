@@ -216,3 +216,37 @@ fn test_negative_numbers() {
     let result = node.run(&mut ctx).expect("Runtime error");
     assert_eq!(result, Value::Int(2));
 }
+
+#[test]
+fn test_modulo() {
+    let grammar_def = r#"
+        Program = Stmt*
+        Stmt = Return
+        Return = "return" Expr
+        
+        Expr = Term
+        Term = Factor Add Term | Factor Sub Term | Factor
+        Factor = Unary Mul Factor | Unary Div Factor | Unary Mod Factor | Unary
+        Unary = UnaryOp Unary | Atom
+        Atom = Float | Int
+        
+        UnaryOp = [!] | [-]
+        Add = [\+]
+        Sub = [-]
+        Mul = [\*]
+        Div = [/]
+        Mod = [%]
+        
+        Float = [[0-9]+\.[0-9]+]
+        Int = [[0-9]+]
+    "#;
+
+    let grammar = Grammar::parse(grammar_def);
+
+    let code = "return 10 % 3";
+    let parser = Parser::new(&grammar, code);
+    let node = parser.parse("Program").expect("Failed to parse modulo");
+    let mut ctx = Context::new();
+    let result = node.run(&mut ctx).expect("Runtime error");
+    assert_eq!(result, Value::Int(1));
+}

@@ -5,6 +5,7 @@ use crate::node::{Context, Node, Value};
 pub enum MulOp {
     Mul,
     Div,
+    Mod,
 }
 
 pub struct Factor {
@@ -31,14 +32,25 @@ impl Node for Factor {
                         Ok(Value::Int(l / r))
                     }
                 }
+                MulOp::Mod => {
+                    if r == 0 {
+                        Err(RuntimeError {
+                            message: "Modulo by zero".to_string(),
+                            stack_trace: vec![],
+                        })
+                    } else {
+                        Ok(Value::Int(l % r))
+                    }
+                }
             },
             (Value::Float(l), Value::Float(r)) => match self.op {
                 MulOp::Mul => Ok(Value::Float(l * r)),
                 MulOp::Div => Ok(Value::Float(l / r)),
+                MulOp::Mod => Ok(Value::Float(l % r)),
             },
             (l, r) => Err(RuntimeError {
                 message: format!(
-                    "Invalid operands for multiplication/division: {:?} and {:?}",
+                    "Invalid operands for multiplication/division/modulo: {:?} and {:?}",
                     l, r
                 ),
                 stack_trace: vec![],
@@ -57,6 +69,7 @@ impl Node for Factor {
             let op = match op_text.as_str() {
                 "*" => MulOp::Mul,
                 "/" => MulOp::Div,
+                "%" => MulOp::Mod,
                 _ => panic!("Unknown MulOp: {}", op_text),
             };
             Box::new(Factor { op, left, right })

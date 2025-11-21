@@ -137,7 +137,7 @@ impl<'a> Parser<'a> {
                         "Block" => Block::from_children(rule_name, parsed_children),
                         "Identifier" => Variable::from_children(rule_name, parsed_children),
                         "Expr" | "Atom" | "If" | "UnaryOp" | "Eq" | "Neq" | "Lt" | "Gt" | "Add"
-                        | "Sub" | "Mul" | "Div" => {
+                        | "Sub" | "Mul" | "Div" | "Mod" => {
                             parsed_children.remaining().into_iter().next().unwrap().1
                         }
                         _ => panic!("Unknown rule: {}", rule_name),

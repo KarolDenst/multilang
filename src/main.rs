@@ -31,7 +31,7 @@ fn main() {
         LogicalAnd = Comparison "&&" LogicalAnd | Comparison
         Comparison = Term Eq Term | Term Neq Term | Term Lt Term | Term Gt Term | Term
         Term = Factor Add Term | Factor Sub Term | Factor
-        Factor = Unary Mul Factor | Unary Div Factor | Unary
+        Factor = Unary Mul Factor | Unary Div Factor | Unary Mod Factor | Unary
         Unary = UnaryOp Unary | Atom
         Atom = Float | Int | String | FunctionCall | Identifier | ListLiteral | "(" Expr ")"
         
@@ -50,6 +50,7 @@ fn main() {
         Sub = [-]
         Mul = [*]
         Div = [/]
+        Mod = [%]
         
         Float = [[0-9]+[.][0-9]+]
         Int = [[0-9]+]
