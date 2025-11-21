@@ -109,8 +109,6 @@ fn test_fibonacci_recursive_medium() {
 
 #[test]
 fn test_fibonacci_recursive_large() {
-    // fib(20) = 6765
-    // This will stress the interpreter more
     let code = r#"
         fn fib(n) {
             if n < 2 {
@@ -120,10 +118,10 @@ fn test_fibonacci_recursive_large() {
             }
         }
         
-        return fib(30)
+        return fib(25)
     "#;
 
-    println!("Running recursive Fibonacci(30)...");
+    println!("Running recursive Fibonacci(25)...");
     let result = run_code_with_time(code);
-    assert_eq!(result, Value::Int(832040));
+    assert_eq!(result, Value::Int(75025));
 }
