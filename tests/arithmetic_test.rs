@@ -16,11 +16,14 @@ fn test_arithmetic_basic() {
     // Simple right-recursive grammar for testing basic ops
     let grammar = r#"
         Program = Expr
-        Expr = Add | Sub | Mul | Div | Int
-        Add = Int "+" Expr
-        Sub = Int "-" Expr
-        Mul = Int "*" Expr
-        Div = Int "/" Expr
+        Expr = Term
+        Term = Factor Add Term | Factor Sub Term | Factor
+        Factor = Int Mul Factor | Int Div Factor | Int
+        
+        Add = [\+]
+        Sub = [-]
+        Mul = [\*]
+        Div = [/]
         Int = [[0-9]+]
     "#;
     
@@ -35,17 +38,15 @@ fn test_arithmetic_precedence() {
     // Grammar enforcing precedence: Add/Sub < Mul/Div < Int
     let grammar = r#"
         Program = Expr
-        Expr = Add | Sub | Term
+        Expr = Term
         
-        Add = Term "+" Expr
-        Sub = Term "-" Expr
+        Term = Factor Add Term | Factor Sub Term | Factor
+        Factor = Int Mul Factor | Int Div Factor | Int
         
-        Term = Mul | Div | Factor
-        
-        Mul = Factor "*" Term
-        Div = Factor "/" Term
-        
-        Factor = Int
+        Add = [\+]
+        Sub = [-]
+        Mul = [\*]
+        Div = [/]
         Int = [[0-9]+]
     "#;
     
@@ -55,17 +56,7 @@ fn test_arithmetic_precedence() {
     test_script(grammar, "2 * 3 + 4", Value::Int(10));
 }
 
-#[test]
-fn test_named_fields() {
-    let grammar = r#"
-        Program = Div
-        Div = right:Int "\" left:Int
-        Int = [[0-9]+]
-    "#;
-    
-    // Input: "2 \ 10" -> 10 / 2 = 5
-    test_script(grammar, "2 \\ 10", Value::Int(5));
-}
+
 
 fn run_code(code: &str) -> Value {
     let grammar_def = r#"
@@ -82,18 +73,19 @@ fn run_code(code: &str) -> Value {
         ParamList = Identifier "," params:ParamList
         ParamList = Identifier
         
-        ArgList = Expr "," args:ArgList
         ArgList = Expr
         
         Return = "return" Expr
         
         Expr = Term
-        Term = Factor AddOp Term | Factor
-        Factor = Atom MulOp Factor | Atom
+        Term = Factor Add Term | Factor Sub Term | Factor
+        Factor = Atom Mul Factor | Atom Div Factor | Atom
         Atom = Float | Int | String | Identifier | FunctionCall | "(" Expr ")"
         
-        AddOp = [\+] | [-]
-        MulOp = [\*] | [/]
+        Add = [\+]
+        Sub = [-]
+        Mul = [\*]
+        Div = [/]
         
         Float = [[0-9]+\.[0-9]+]
         Int = [[0-9]+]

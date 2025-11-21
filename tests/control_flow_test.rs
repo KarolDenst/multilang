@@ -20,7 +20,20 @@ fn test_if_true() {
         IfThen = "if" condition:Expr then:Block
         Block = "{" Program "}"
         Print = "print" Int
-        Expr = True | False | Int
+        Expr = Comparison
+        Comparison = Term Eq Term | Term Neq Term | Term Lt Term | Term Gt Term | Term
+        Term = Factor Add Term | Factor Sub Term | Factor
+        Factor = Atom Mul Factor | Atom Div Factor | Atom
+        Atom = Float | Int | String | Identifier | FunctionCall | "(" Expr ")" | True | False
+        
+        Eq = [==]
+        Neq = [!=]
+        Lt = [<]
+        Gt = [>]
+        Add = [\+]
+        Sub = [-]
+        Mul = [\*]
+        Div = [/]
         True = "true"
         False = "false"
         Int = [[0-9]+]

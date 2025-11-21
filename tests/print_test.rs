@@ -20,7 +20,15 @@ fn test_simple_print() {
         FunctionCall = name:Identifier "(" ")"
         ArgList = Expr "," args:ArgList
         ArgList = Expr
-        Expr = Int | String
+        Expr = Term
+        Term = Factor Add Term | Factor Sub Term | Factor
+        Factor = Atom Mul Factor | Atom Div Factor | Atom
+        Atom = Float | Int | String | Identifier | FunctionCall | "(" Expr ")"
+        
+        Add = [\+]
+        Sub = [-]
+        Mul = [\*]
+        Div = [/]
         Int = [[0-9]+]
         String = ["[^\"]*"]
         Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]

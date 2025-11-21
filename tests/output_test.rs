@@ -16,7 +16,16 @@ fn test_return_value() {
     let grammar = r#"
         Program = Stmt*
         Stmt = Return
-        Return = "return" Int
+        Return = "return" Expr
+        Expr = Term
+        Term = Factor Add Term | Factor Sub Term | Factor
+        Factor = Atom Mul Factor | Atom Div Factor | Atom
+        Atom = Float | Int | String | Identifier | FunctionCall | "(" Expr ")"
+        
+        Add = [\+]
+        Sub = [-]
+        Mul = [\*]
+        Div = [/]
         Int = [[0-9]+]
     "#;
     let input = "return 100";

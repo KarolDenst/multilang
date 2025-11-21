@@ -14,14 +14,19 @@ fn run_code(code: &str) -> Value {
         Return = "return" Expr
         
         Expr = Comparison
-        Comparison = Term CompOp Term | Term
-        Term = Factor AddOp Term | Factor
-        Factor = Atom MulOp Factor | Atom
+        Comparison = Term Eq Term | Term Neq Term | Term Lt Term | Term Gt Term | Term
+        Term = Factor Add Term | Factor Sub Term | Factor
+        Factor = Atom Mul Factor | Atom Div Factor | Atom
         Atom = Float | Int | String | Identifier | FunctionCall | "(" Expr ")"
         
-        CompOp = [==] | [!=] | [<] | [>]
-        AddOp = [\+] | [-]
-        MulOp = [\*] | [/]
+        Eq = [==]
+        Neq = [!=]
+        Lt = [<]
+        Gt = [>]
+        Add = [\+]
+        Sub = [-]
+        Mul = [\*]
+        Div = [/]
         
         Float = [[0-9]+\.[0-9]+]
         Int = [[0-9]+]

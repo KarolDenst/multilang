@@ -34,31 +34,21 @@ impl Node for Term {
         }
     }
 
-    fn from_children(rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
-        match rule_name {
-            "Add" | "Sub" => {
-                let left = children.take_child("left").or_else(|| children.take_child("")).unwrap();
-                let right = children.take_child("right").or_else(|| children.take_child("")).unwrap();
-                let op = if rule_name == "Add" { AddOp::Add } else { AddOp::Sub };
-                Box::new(Term { op, left, right })
-            },
-            _ => {
-                // Term = Factor AddOp Term | Factor
-                let left = children.take_child("").unwrap(); // Factor
-                
-                if let Some(op_node) = children.take_child("") { // AddOp
-                    let right = children.take_child("").unwrap(); // Term
-                    let op_text = op_node.text().unwrap();
-                    let op = match op_text.as_str() {
-                        "+" => AddOp::Add,
-                        "-" => AddOp::Sub,
-                        _ => panic!("Unknown AddOp: {}", op_text),
-                    };
-                    Box::new(Term { op, left, right })
-                } else {
-                    left
-                }
-            }
+    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+        // Term = Factor AddOp Term | Factor
+        let left = children.take_child("").unwrap(); // Factor
+        
+        if let Some(op_node) = children.take_child("") { // AddOp
+            let right = children.take_child("").unwrap(); // Term
+            let op_text = op_node.text().unwrap();
+            let op = match op_text.as_str() {
+                "+" => AddOp::Add,
+                "-" => AddOp::Sub,
+                _ => panic!("Unknown AddOp: {}", op_text),
+            };
+            Box::new(Term { op, left, right })
+        } else {
+            left
         }
     }
 }

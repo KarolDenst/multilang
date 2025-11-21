@@ -40,8 +40,8 @@ impl<'a> Parser<'a> {
                         "Return" => Return::from_children(rule_name, parsed_children),
                         "Comparison" => Comparison::from_children(rule_name, parsed_children),
                         "LogicalOr" | "LogicalAnd" => Logical::from_children(rule_name, parsed_children),
-                        "Add" | "Sub" | "Term" => Term::from_children(rule_name, parsed_children),
-                        "Mul" | "Div" | "Factor" => Factor::from_children(rule_name, parsed_children),
+                        "Term" => Term::from_children(rule_name, parsed_children),
+                        "Factor" => Factor::from_children(rule_name, parsed_children),
                         "Unary" => Unary::from_children(rule_name, parsed_children),
                         "IfElse" | "IfThen" => If::from_children(rule_name, parsed_children),
                         "Int" | "Float" | "String" | "True" | "False" => Literal::from_children(rule_name, parsed_children),
@@ -50,7 +50,7 @@ impl<'a> Parser<'a> {
                         "ParamList" | "ArgList" => ListNode::from_children(rule_name, parsed_children),
                         "Block" => Block::from_children(rule_name, parsed_children),
                         "Identifier" => Variable::from_children(rule_name, parsed_children),
-                        "Expr" | "Atom" | "If" | "AddOp" | "MulOp" | "CompOp" | "UnaryOp" => parsed_children.remaining().into_iter().next().unwrap().1,
+                        "Expr" | "Atom" | "If" | "UnaryOp" | "Eq" | "Neq" | "Lt" | "Gt" | "Add" | "Sub" | "Mul" | "Div" => parsed_children.remaining().into_iter().next().unwrap().1,
                         _ => panic!("Unknown rule: {}", rule_name),
                     };
                     return Ok((node, new_pos));

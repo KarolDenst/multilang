@@ -16,16 +16,21 @@ fn run_code(code: &str) -> Value {
         Expr = LogicalOr
         LogicalOr = LogicalAnd "||" LogicalOr | LogicalAnd
         LogicalAnd = Comparison "&&" LogicalAnd | Comparison
-        Comparison = Term CompOp Term | Term
-        Term = Factor AddOp Term | Factor
-        Factor = Unary MulOp Factor | Unary
+        Comparison = Term Eq Term | Term Neq Term | Term Lt Term | Term Gt Term | Term
+        Term = Factor Add Term | Factor Sub Term | Factor
+        Factor = Unary Mul Factor | Unary Div Factor | Unary
         Unary = UnaryOp Unary | Atom
         Atom = Float | Int | String | Identifier | FunctionCall | "(" Expr ")"
         
         UnaryOp = [!]
-        CompOp = [==] | [!=] | [<] | [>]
-        AddOp = [\+] | [-]
-        MulOp = [\*] | [/]
+        Eq = [==]
+        Neq = [!=]
+        Lt = [<]
+        Gt = [>]
+        Add = [\+]
+        Sub = [-]
+        Mul = [\*]
+        Div = [/]
         
         Float = [[0-9]+\.[0-9]+]
         Int = [[0-9]+]

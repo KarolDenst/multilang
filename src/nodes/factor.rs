@@ -36,31 +36,21 @@ impl Node for Factor {
         }
     }
 
-    fn from_children(rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
-        match rule_name {
-            "Mul" | "Div" => {
-                let left = children.take_child("left").or_else(|| children.take_child("")).unwrap();
-                let right = children.take_child("right").or_else(|| children.take_child("")).unwrap();
-                let op = if rule_name == "Mul" { MulOp::Mul } else { MulOp::Div };
-                Box::new(Factor { op, left, right })
-            },
-            _ => {
-                // Factor = Atom MulOp Factor | Atom
-                let left = children.take_child("").unwrap(); // Atom
-                
-                if let Some(op_node) = children.take_child("") { // MulOp
-                    let right = children.take_child("").unwrap(); // Factor
-                    let op_text = op_node.text().unwrap();
-                    let op = match op_text.as_str() {
-                        "*" => MulOp::Mul,
-                        "/" => MulOp::Div,
-                        _ => panic!("Unknown MulOp: {}", op_text),
-                    };
-                    Box::new(Factor { op, left, right })
-                } else {
-                    left
-                }
-            }
+    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+        // Factor = Atom MulOp Factor | Atom
+        let left = children.take_child("").unwrap(); // Atom
+        
+        if let Some(op_node) = children.take_child("") { // MulOp
+            let right = children.take_child("").unwrap(); // Factor
+            let op_text = op_node.text().unwrap();
+            let op = match op_text.as_str() {
+                "*" => MulOp::Mul,
+                "/" => MulOp::Div,
+                _ => panic!("Unknown MulOp: {}", op_text),
+            };
+            Box::new(Factor { op, left, right })
+        } else {
+            left
         }
     }
 }

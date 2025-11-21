@@ -8,16 +8,22 @@ Multilang is a dynamic language runtime that allows you to define languages usin
 - **Extensible AST**: Built-in nodes for `Program`, `Print`, `Return`, `Int`.
 - **Instant Execution**: No compilation step required for the defined language.
 
+## Documentation
+
+- [**Nodes**](docs/nodes.md): List of available AST nodes and their grammar definitions.
+- [**Example**](docs/example.md): A complete example of a grammar and code.
+- [**Roadmap**](docs/roadmap.md): Planned features and improvements.
+- [**Standards**](docs/standards.md): Development standards and best practices.
+
 ## Getting Started
-
-1.  Clone the repository.
-2.  Run the sample program:
-    ```bash
-    cargo run
-    ```
-
-## Defining Grammars
-
+To run the project:
+```bash
+cargo run
+```
+To run tests:
+```bash
+cargo test
+```
 You can define your language grammar using a string. The format is:
 
 ```
