@@ -41,7 +41,7 @@ fn main() {
         Elements = Expr "," Elements
         Elements = Expr
         
-        UnaryOp = [!]
+        UnaryOp = [!] | [-]
         Eq = [==]
         Neq = [!=]
         Lt = [<]
