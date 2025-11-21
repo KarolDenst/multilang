@@ -3,16 +3,15 @@
 This document lists the planned features and improvements for the project.
 
 ## Planned Features
-- [ ] Investigate changing `rule_name` to enum for better type safety.
-- [ ] Add more built-in functions (e.g., `len`, `input`, string manipulation).
-- [ ] Add support for structs/classes and object-oriented programming.
+- [ ] Improve error messages with line numbers and better context.
 - [ ] Add loops (for, while).
-- [ ] Add module operator.
+- [ ] Add modulo operator.
 - [ ] Add comments.
+- [ ] Add support for structs/classes and object-oriented programming.
 - [ ] Add `List` data type.
 - [ ] Add `String` indexing.
 - [ ] Add `Map` (Dictionary) data type.
-- [ ] Improve error messages with line numbers and better context.
+- [ ] Add more built-in functions (e.g., `len`, `input`, string manipulation).
 - [ ] Generate VS Code / Vim syntax highlighting extensions from the grammar.
 
 ## Completed Features

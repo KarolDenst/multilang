@@ -1,5 +1,6 @@
 use crate::node::{Context, Node, Value};
 
+#[derive(Debug, Clone, Copy)]
 pub enum CompOp {
     Equal,
     NotEqual,
@@ -63,10 +64,11 @@ impl Node for Comparison {
         // OR we handle it here.
         // Based on previous Term/Factor implementation:
         // If we have an operator, we create the node. If not, we return the child.
-        
+
         let left = children.take_child("").unwrap(); // Term
-        
-        if let Some(op_node) = children.take_child("") { // CompOp
+
+        if let Some(op_node) = children.take_child("") {
+            // CompOp
             let right = children.take_child("").unwrap(); // Term
             let op_text = op_node.text().unwrap();
             let op = match op_text.as_str() {
@@ -80,5 +82,13 @@ impl Node for Comparison {
         } else {
             left
         }
+    }
+
+    fn box_clone(&self) -> Box<dyn Node> {
+        Box::new(Comparison {
+            op: self.op, // CompOp is Copy
+            left: self.left.clone(),
+            right: self.right.clone(),
+        })
     }
 }

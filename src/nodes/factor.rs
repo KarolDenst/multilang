@@ -26,7 +26,7 @@ impl Node for Factor {
                     } else {
                         Value::Int(l / r)
                     }
-                },
+                }
             },
             (Value::Float(l), Value::Float(r)) => match self.op {
                 MulOp::Mul => Value::Float(l * r),
@@ -39,8 +39,9 @@ impl Node for Factor {
     fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
         // Factor = Atom MulOp Factor | Atom
         let left = children.take_child("").unwrap(); // Atom
-        
-        if let Some(op_node) = children.take_child("") { // MulOp
+
+        if let Some(op_node) = children.take_child("") {
+            // MulOp
             let right = children.take_child("").unwrap(); // Factor
             let op_text = op_node.text().unwrap();
             let op = match op_text.as_str() {
@@ -52,5 +53,13 @@ impl Node for Factor {
         } else {
             left
         }
+    }
+
+    fn box_clone(&self) -> Box<dyn Node> {
+        Box::new(Factor {
+            op: self.op,
+            left: self.left.clone(),
+            right: self.right.clone(),
+        })
     }
 }

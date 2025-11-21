@@ -1,6 +1,6 @@
 use multilang::grammar::Grammar;
-use multilang::parser::Parser;
 use multilang::node::{Context, Value};
+use multilang::parser::Parser;
 
 fn run_code(code: &str) -> Value {
     let grammar_def = r#"
@@ -72,11 +72,11 @@ fn test_precedence() {
     // && has higher precedence than ||
     // true || false && false -> true || (false && false) -> true || false -> true
     assert_eq!(run_code("return 1==1 || 1==2 && 1==2"), Value::Bool(true));
-    
+
     // ! has higher precedence than &&
     // !true && false -> false && false -> false
     assert_eq!(run_code("return ! (1==1) && (1==2)"), Value::Bool(false));
-    
+
     // !false && true -> true && true -> true
     assert_eq!(run_code("return ! (1==2) && (1==1)"), Value::Bool(true));
 }

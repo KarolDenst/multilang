@@ -9,7 +9,7 @@ pub struct If {
 impl Node for If {
     fn run(&self, ctx: &mut Context) -> Value {
         let condition_val = self.condition.run(ctx);
-        
+
         let is_true = match condition_val {
             Value::Bool(b) => b,
             Value::Int(i) => i != 0,
@@ -29,10 +29,18 @@ impl Node for If {
         let condition = children.take_child("condition").unwrap();
         let then_block = children.take_child("then").unwrap();
         let else_block = children.take_child("else");
-        Box::new(If { 
-            condition, 
-            then_block, 
-            else_block 
+        Box::new(If {
+            condition,
+            then_block,
+            else_block,
+        })
+    }
+
+    fn box_clone(&self) -> Box<dyn Node> {
+        Box::new(If {
+            condition: self.condition.clone(),
+            then_block: self.then_block.clone(),
+            else_block: self.else_block.as_ref().map(|b| b.clone()),
         })
     }
 }

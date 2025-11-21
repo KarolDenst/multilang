@@ -34,20 +34,39 @@ impl Context {
             builtins: HashMap::new(),
         };
         // Register built-ins
-        ctx.builtins.insert("print".to_string(), crate::functions::print::print_fn);
+        ctx.builtins
+            .insert("print".to_string(), crate::functions::print::print_fn);
         ctx
     }
 }
 
 pub trait Node {
     fn run(&self, ctx: &mut Context) -> Value;
-    fn text(&self) -> Option<String> { None }
-    fn params(&self) -> Option<Vec<String>> { None }
-    fn is_args(&self) -> bool { false }
-    fn into_args(self: Box<Self>) -> Vec<Box<dyn Node>> { vec![] }
-    
+    fn text(&self) -> Option<String> {
+        None
+    }
+    fn params(&self) -> Option<Vec<String>> {
+        None
+    }
+    fn is_args(&self) -> bool {
+        false
+    }
+    fn into_args(self: Box<Self>) -> Vec<Box<dyn Node>> {
+        vec![]
+    }
+
     // Static method to construct node from children
-    fn from_children(rule_name: &str, children: ParsedChildren) -> Box<dyn Node> where Self: Sized;
+    fn from_children(rule_name: &str, children: ParsedChildren) -> Box<dyn Node>
+    where
+        Self: Sized;
+
+    fn box_clone(&self) -> Box<dyn Node>;
+}
+
+impl Clone for Box<dyn Node> {
+    fn clone(&self) -> Box<dyn Node> {
+        self.box_clone()
+    }
 }
 
 pub struct ParsedChildren {
@@ -61,7 +80,11 @@ impl ParsedChildren {
 
     pub fn take_child(&mut self, name: &str) -> Option<Box<dyn Node>> {
         // 1. Try named match
-        if let Some(pos) = self.children.iter().position(|(n, _)| n.as_deref() == Some(name)) {
+        if let Some(pos) = self
+            .children
+            .iter()
+            .position(|(n, _)| n.as_deref() == Some(name))
+        {
             return Some(self.children.remove(pos).1);
         }
         // 2. Fallback to first unnamed
@@ -70,7 +93,7 @@ impl ParsedChildren {
         }
         None
     }
-    
+
     pub fn remaining(self) -> Vec<(Option<String>, Box<dyn Node>)> {
         self.children
     }

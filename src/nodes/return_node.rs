@@ -13,4 +13,10 @@ impl Node for Return {
         let expr = children.take_child("expression").unwrap();
         Box::new(Return { expression: expr })
     }
+
+    fn box_clone(&self) -> Box<dyn Node> {
+        Box::new(Return {
+            expression: self.expression.clone(),
+        })
+    }
 }
