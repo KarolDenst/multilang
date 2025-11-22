@@ -19,7 +19,7 @@ impl Node for Return {
 
     fn box_clone(&self) -> Box<dyn Node> {
         Box::new(Return {
-            expression: self.expression.clone(),
+            expression: self.expression.box_clone(),
         })
     }
 }

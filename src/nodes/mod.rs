@@ -1,9 +1,19 @@
+pub mod classes;
 pub mod control_flow;
 pub mod expressions;
 pub mod functions;
 pub mod program;
 pub mod types;
 
+pub use classes::ClassDef;
+pub use classes::FieldDef;
+pub use classes::MemberAccess;
+pub use classes::MethodCall;
+pub use classes::MethodDef;
+pub use classes::NewExpr;
+pub use classes::PostfixNode;
+pub use classes::PostfixSuffixNode;
+pub use classes::SelfReference;
 pub use control_flow::{Block, ForNode, If, Return, WhileNode};
 pub use expressions::{Assignment, Comparison, Factor, Logical, Term, Unary, Variable};
 pub use functions::{ArgListNode, FunctionCall, FunctionDef};

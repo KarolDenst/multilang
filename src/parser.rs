@@ -2,9 +2,10 @@ use crate::error::{ParseError, RuntimeError};
 use crate::grammar::{Grammar, Pattern, Rule};
 use crate::node::{Node, ParsedChildren, Value};
 use crate::nodes::{
-    ArgListNode, Assignment, Block, Comparison, ElementsNode, Factor, ForNode, FunctionCall,
-    FunctionDef, If, ListNode, Literal, Logical, MapEntriesNode, MapEntryNode, MapNode, Program,
-    Return, Term, Unary, Variable, WhileNode,
+    ArgListNode, Assignment, Block, ClassDef, Comparison, ElementsNode, Factor, FieldDef, ForNode,
+    FunctionCall, FunctionDef, If, ListNode, Literal, Logical, MapEntriesNode, MapEntryNode,
+    MapNode, MemberAccess, MethodCall, MethodDef, NewExpr, PostfixNode, PostfixSuffixNode, Program,
+    Return, SelfReference, Term, Unary, Variable, WhileNode,
 };
 use regex::Regex;
 
@@ -145,6 +146,25 @@ impl<'a> Parser<'a> {
                         Rule::WhileLoop => WhileNode::from_children(rule_name, parsed_children),
                         Rule::Block => Block::from_children(rule_name, parsed_children),
                         Rule::Identifier => Variable::from_children(rule_name, parsed_children),
+                        Rule::ClassDef => ClassDef::from_children(rule_name, parsed_children),
+                        Rule::ClassMember => {
+                            // ClassMember is a wrapper, return the child directly
+                            parsed_children.remaining().into_iter().next().unwrap().1
+                        }
+                        Rule::FieldDef => FieldDef::from_children(rule_name, parsed_children),
+                        Rule::MethodDef => MethodDef::from_children(rule_name, parsed_children),
+                        Rule::NewExpr => NewExpr::from_children(rule_name, parsed_children),
+                        Rule::MemberAccess => {
+                            MemberAccess::from_children(rule_name, parsed_children)
+                        }
+                        Rule::MethodCall => MethodCall::from_children(rule_name, parsed_children),
+                        Rule::SelfReference => {
+                            SelfReference::from_children(rule_name, parsed_children)
+                        }
+                        Rule::Postfix => PostfixNode::from_children(rule_name, parsed_children),
+                        Rule::PostfixSuffix => {
+                            PostfixSuffixNode::from_children(rule_name, parsed_children)
+                        }
                         Rule::Expr
                         | Rule::Atom
                         | Rule::If

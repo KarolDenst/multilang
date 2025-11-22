@@ -47,6 +47,16 @@ pub enum Rule {
     Div,
     Mod,
     Key,
+    ClassDef,
+    ClassMember,
+    FieldDef,
+    MethodDef,
+    NewExpr,
+    MemberAccess,
+    MethodCall,
+    SelfReference,
+    Postfix,
+    PostfixSuffix,
 }
 
 impl FromStr for Rule {
@@ -98,6 +108,16 @@ impl FromStr for Rule {
             "Div" => Ok(Rule::Div),
             "Mod" => Ok(Rule::Mod),
             "Key" => Ok(Rule::Key),
+            "ClassDef" => Ok(Rule::ClassDef),
+            "ClassMember" => Ok(Rule::ClassMember),
+            "FieldDef" => Ok(Rule::FieldDef),
+            "MethodDef" => Ok(Rule::MethodDef),
+            "NewExpr" => Ok(Rule::NewExpr),
+            "MemberAccess" => Ok(Rule::MemberAccess),
+            "MethodCall" => Ok(Rule::MethodCall),
+            "SelfReference" => Ok(Rule::SelfReference),
+            "Postfix" => Ok(Rule::Postfix),
+            "PostfixSuffix" => Ok(Rule::PostfixSuffix),
             _ => Err(format!("Unknown rule: {}", s)),
         }
     }
@@ -207,8 +227,9 @@ impl Grammar {
                         } else if sub_token.starts_with('[') && sub_token.ends_with(']') {
                             Pattern::Regex(sub_token[1..sub_token.len() - 1].to_string())
                         } else {
-                            let sub_rule = Rule::from_str(sub_token)
-                                .unwrap_or_else(|_| panic!("Unknown rule in pattern: {}", sub_token));
+                            let sub_rule = Rule::from_str(sub_token).unwrap_or_else(|_| {
+                                panic!("Unknown rule in pattern: {}", sub_token)
+                            });
                             Pattern::RuleReference(sub_rule)
                         };
 

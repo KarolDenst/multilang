@@ -45,5 +45,9 @@ fn print_value(val: &Value) {
             print!("}}");
         }
         Value::Void => print!("(void)"),
+        Value::Object(obj) => {
+            let obj = obj.borrow();
+            print!("<Object {}>", obj.class_name);
+        }
     }
 }

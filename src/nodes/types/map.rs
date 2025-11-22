@@ -98,7 +98,13 @@ impl Node for MapEntriesNode {
     }
 
     fn box_clone(&self) -> Box<dyn Node> {
-        Box::new(self.clone())
+        Box::new(MapEntriesNode {
+            entries: self
+                .entries
+                .iter()
+                .map(|(k, v)| (k.clone(), v.box_clone()))
+                .collect(),
+        })
     }
 }
 

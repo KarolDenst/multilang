@@ -27,9 +27,10 @@ impl Node for ElementsNode {
             for item in children.remaining() {
                 let (_, node) = item;
                 if let Some(t) = node.text()
-                    && t == "," {
-                        continue;
-                    }
+                    && t == ","
+                {
+                    continue;
+                }
 
                 if node.is_list_elements() {
                     elements.extend(node.into_list_elements());

@@ -49,9 +49,10 @@ impl Node for ArgListNode {
             for item in children.remaining() {
                 let (_, node) = item;
                 if let Some(t) = node.text()
-                    && t == "," {
-                        continue;
-                    }
+                    && t == ","
+                {
+                    continue;
+                }
 
                 if node.is_args() {
                     args.extend(node.into_args());

@@ -14,7 +14,21 @@ pub enum Value {
     Bool(bool),
     List(Rc<RefCell<Vec<Value>>>),
     Map(Rc<RefCell<HashMap<String, Value>>>),
+    Object(Rc<RefCell<Object>>),
     Void,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Object {
+    pub class_name: String,
+    pub fields: HashMap<String, Value>,
+}
+
+#[derive(Clone)]
+pub struct Class {
+    pub name: String,
+    pub fields: Vec<String>,
+    pub methods: HashMap<String, Function>,
 }
 
 #[derive(Clone)]
@@ -29,6 +43,7 @@ pub struct Context {
     // For now, context can be empty or hold variables later
     pub variables: HashMap<String, Value>,
     pub functions: HashMap<String, Function>,
+    pub classes: HashMap<String, Class>,
     pub builtins: HashMap<String, BuiltInFunction>,
 }
 
@@ -43,6 +58,7 @@ impl Context {
         let mut ctx = Self {
             variables: HashMap::new(),
             functions: HashMap::new(),
+            classes: HashMap::new(),
             builtins: HashMap::new(),
         };
         // Register built-ins
@@ -61,7 +77,7 @@ impl Context {
     }
 }
 
-pub trait Node {
+pub trait Node: AsAny {
     fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError>;
     fn text(&self) -> Option<String> {
         None
@@ -94,6 +110,16 @@ pub trait Node {
         Self: Sized;
 
     fn box_clone(&self) -> Box<dyn Node>;
+}
+
+pub trait AsAny: std::any::Any {
+    fn as_any(&self) -> &dyn std::any::Any;
+}
+
+impl<T: std::any::Any> AsAny for T {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 }
 
 impl Clone for Box<dyn Node> {
