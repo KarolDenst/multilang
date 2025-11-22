@@ -62,11 +62,10 @@ impl Node for Factor {
 
     fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         // Factor = Atom MulOp Factor | Atom
-        let left = children.take_child("").unwrap(); // Atom
+        let left = children.take_child("").unwrap();
 
         if let Some(op_node) = children.take_child("") {
-            // MulOp
-            let right = children.take_child("").unwrap(); // Factor
+            let right = children.take_child("").unwrap();
             let op_text = op_node.text().unwrap();
             let op = match op_text.as_str() {
                 "*" => MulOp::Mul,

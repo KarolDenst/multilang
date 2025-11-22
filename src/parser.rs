@@ -11,10 +11,15 @@ use regex::Regex;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
+type CacheKey = (Rule, usize);
+type CacheEntry = Option<(Box<dyn Node>, usize)>;
+type ParsedChild = (Option<String>, Box<dyn Node>);
+type ParseSequenceResult = Result<(Vec<ParsedChild>, usize), ParseError>;
+
 pub struct Parser<'a> {
     grammar: &'a Grammar,
     input: &'a str,
-    cache: RefCell<HashMap<(Rule, usize), Option<(Box<dyn Node>, usize)>>>,
+    cache: RefCell<HashMap<CacheKey, CacheEntry>>,
 }
 
 impl<'a> Parser<'a> {
@@ -32,7 +37,7 @@ impl<'a> Parser<'a> {
         if final_pos < self.input.len() {
             let (line, col, line_content) = self.get_location(final_pos);
             return Err(ParseError {
-                message: format!("Unexpected token at end of input"),
+                message: "Unexpected token at end of input".to_string(),
                 line,
                 column: col,
                 line_content,
@@ -101,11 +106,6 @@ impl<'a> Parser<'a> {
         for rule in rules {
             match self.parse_sequence(&rule.patterns, pos) {
                 Ok((children_with_names, new_pos)) => {
-                    // Helper to extract children
-                    // children_with_names is Vec<(Option<String>, Box<dyn Node>)>
-
-                    // Better strategy: Convert children to a workable structure
-                    // We have ownership of children_with_names here.
                     let (line, _, _) = self.get_location(pos);
                     let parsed_children = ParsedChildren::new(children_with_names, line);
 
@@ -158,7 +158,7 @@ impl<'a> Parser<'a> {
                         | Rule::Mul
                         | Rule::Div
                         | Rule::Mod
-                        | Rule::Key => parsed_children.remaining().into_iter().next().unwrap().1, // _ => panic!("Unknown rule: {:?}", rule_name), // Exhaustive match means we don't need this, or we can keep it for safety if we add rules
+                        | Rule::Key => parsed_children.remaining().into_iter().next().unwrap().1,
                     };
 
                     // Cache success
@@ -182,12 +182,8 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_sequence(
-        &self,
-        patterns: &[Pattern],
-        mut pos: usize,
-    ) -> Result<(Vec<(Option<String>, Box<dyn Node>)>, usize), ParseError> {
-        let mut children: Vec<(Option<String>, Box<dyn Node>)> = Vec::new();
+    fn parse_sequence(&self, patterns: &[Pattern], mut pos: usize) -> ParseSequenceResult {
+        let mut children: Vec<ParsedChild> = Vec::new();
 
         for pattern in patterns {
             pos = self.skip_whitespace(pos);
@@ -337,7 +333,7 @@ impl<'a> Parser<'a> {
             }
             // Skip comments
             if pos < self.input.len() && self.input[pos..].starts_with("//") {
-                while pos < self.input.len() && self.input[pos..].chars().next().unwrap() != '\n' {
+                while pos < self.input.len() && !self.input[pos..].starts_with('\n') {
                     pos += 1;
                 }
                 changed = true;

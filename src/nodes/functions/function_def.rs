@@ -29,11 +29,10 @@ impl Node for FunctionDef {
         let name = name_node.text().unwrap_or_default();
 
         let mut params = Vec::new();
-        if let Some(param_list) = children.take_child("params") {
-            if let Some(p_list) = param_list.params() {
+        if let Some(param_list) = children.take_child("params")
+            && let Some(p_list) = param_list.params() {
                 params = p_list;
             }
-        }
 
         let body = children.take_child("body").unwrap();
         Box::new(FunctionDef {

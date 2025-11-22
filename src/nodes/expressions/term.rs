@@ -52,11 +52,10 @@ impl Node for Term {
 
     fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         // Term = Factor AddOp Term | Factor
-        let left = children.take_child("").unwrap(); // Factor
+        let left = children.take_child("").unwrap();
 
         if let Some(op_node) = children.take_child("") {
-            // AddOp
-            let right = children.take_child("").unwrap(); // Term
+            let right = children.take_child("").unwrap();
             let op_text = op_node.text().unwrap();
             let op = match op_text.as_str() {
                 "+" => AddOp::Add,

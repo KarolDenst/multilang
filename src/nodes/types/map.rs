@@ -144,7 +144,7 @@ impl Node for MapEntryNode {
 
         let key = key_node
             .text()
-            .or_else(|| {
+            .or({
                 // Fallback: if it's a Literal, maybe we can get text from it?
                 // Or maybe we need to change how Literal/Variable are parsed to preserve text.
                 None

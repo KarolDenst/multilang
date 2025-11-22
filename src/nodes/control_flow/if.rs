@@ -43,7 +43,7 @@ impl Node for If {
         Box::new(If {
             condition: self.condition.clone(),
             then_block: self.then_block.clone(),
-            else_block: self.else_block.as_ref().map(|b| b.clone()),
+            else_block: self.else_block.clone(),
         })
     }
 }

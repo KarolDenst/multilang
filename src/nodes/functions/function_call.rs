@@ -78,11 +78,10 @@ impl Node for FunctionCall {
         let name = name_node.text().unwrap_or_default();
 
         let mut args = Vec::new();
-        if let Some(arg_list) = children.take_child("args") {
-            if arg_list.is_args() {
+        if let Some(arg_list) = children.take_child("args")
+            && arg_list.is_args() {
                 args = arg_list.into_args();
             }
-        }
 
         Box::new(FunctionCall { name, args, line })
     }

@@ -48,11 +48,10 @@ impl Node for ArgListNode {
             let mut args = Vec::new();
             for item in children.remaining() {
                 let (_, node) = item;
-                if let Some(t) = node.text() {
-                    if t == "," {
+                if let Some(t) = node.text()
+                    && t == "," {
                         continue;
                     }
-                }
 
                 if node.is_args() {
                     args.extend(node.into_args());

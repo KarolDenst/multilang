@@ -123,6 +123,12 @@ pub struct Grammar {
     pub rules: HashMap<Rule, Vec<Production>>,
 }
 
+impl Default for Grammar {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Grammar {
     pub fn new() -> Self {
         Self {
@@ -133,7 +139,7 @@ impl Grammar {
     pub fn add_rule(&mut self, rule: Rule, patterns: Vec<Pattern>) {
         self.rules
             .entry(rule)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(Production { rule, patterns });
     }
 
@@ -186,10 +192,9 @@ impl Grammar {
                         patterns.push(Pattern::Literal(token[1..token.len() - 1].to_string()));
                     } else if token.starts_with('[') && token.ends_with(']') {
                         patterns.push(Pattern::Regex(token[1..token.len() - 1].to_string()));
-                    } else if token.ends_with('*') {
-                        let sub_token = &token[..token.len() - 1];
+                    } else if let Some(sub_token) = token.strip_suffix('*') {
                         let sub_rule = Rule::from_str(sub_token)
-                            .expect(&format!("Unknown rule in pattern: {}", sub_token));
+                            .unwrap_or_else(|_| panic!("Unknown rule in pattern: {}", sub_token));
                         patterns.push(Pattern::Star(Box::new(Pattern::RuleReference(sub_rule))));
                     } else if let Some(idx) = token.find(':') {
                         // Handle name:Pattern
@@ -203,7 +208,7 @@ impl Grammar {
                             Pattern::Regex(sub_token[1..sub_token.len() - 1].to_string())
                         } else {
                             let sub_rule = Rule::from_str(sub_token)
-                                .expect(&format!("Unknown rule in pattern: {}", sub_token));
+                                .unwrap_or_else(|_| panic!("Unknown rule in pattern: {}", sub_token));
                             Pattern::RuleReference(sub_rule)
                         };
 
@@ -213,7 +218,7 @@ impl Grammar {
                         ));
                     } else {
                         let sub_rule = Rule::from_str(token)
-                            .expect(&format!("Unknown rule in pattern: {}", token));
+                            .unwrap_or_else(|_| panic!("Unknown rule in pattern: {}", token));
                         patterns.push(Pattern::RuleReference(sub_rule));
                     }
                 }

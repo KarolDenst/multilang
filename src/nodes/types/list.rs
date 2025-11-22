@@ -26,11 +26,10 @@ impl Node for ElementsNode {
             let mut elements = Vec::new();
             for item in children.remaining() {
                 let (_, node) = item;
-                if let Some(t) = node.text() {
-                    if t == "," {
+                if let Some(t) = node.text()
+                    && t == "," {
                         continue;
                     }
-                }
 
                 if node.is_list_elements() {
                     elements.extend(node.into_list_elements());
