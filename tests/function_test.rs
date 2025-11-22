@@ -1,12 +1,11 @@
-use multilang::grammar::Grammar;
+use multilang::grammar::{Grammar, Rule};
 use multilang::node::{Context, Value};
 use multilang::parser::Parser;
 
 fn test_script(grammar_def: &str, input: &str, expected: Value) {
     let grammar = Grammar::parse(grammar_def);
     let parser = Parser::new(&grammar, input);
-    let program_node = parser.parse("Program").expect("Parsing failed");
-    let mut ctx = Context::new();
+    let program_node = parser.parse(Rule::Program).expect("Parsing failed");
     let mut ctx = Context::new();
     let result = program_node.run(&mut ctx).expect("Runtime error");
     assert_eq!(result, expected);

@@ -1,4 +1,4 @@
-use multilang::grammar::Grammar;
+use multilang::grammar::{Grammar, Rule};
 use multilang::node::{Context, Value};
 use multilang::parser::Parser;
 
@@ -50,7 +50,7 @@ fn test_assignment() {
         return x
     "#;
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Parsing failed");
+    let node = parser.parse(Rule::Program).expect("Parsing failed");
     let mut ctx = Context::new();
     let result = node.run(&mut ctx).expect("Runtime error");
     assert_eq!(result, Value::Int(10));
@@ -65,7 +65,7 @@ fn test_assignment_update() {
         return x
     "#;
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Parsing failed");
+    let node = parser.parse(Rule::Program).expect("Parsing failed");
     let mut ctx = Context::new();
     let result = node.run(&mut ctx).expect("Runtime error");
     assert_eq!(result, Value::Int(20));
@@ -79,7 +79,7 @@ fn test_assignment_expression() {
         return x
     "#;
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Parsing failed");
+    let node = parser.parse(Rule::Program).expect("Parsing failed");
     let mut ctx = Context::new();
     let result = node.run(&mut ctx).expect("Runtime error");
     assert_eq!(result, Value::Int(20));
@@ -96,7 +96,7 @@ fn test_assignment_in_function() {
         return foo()
     "#;
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Parsing failed");
+    let node = parser.parse(Rule::Program).expect("Parsing failed");
     let mut ctx = Context::new();
     let result = node.run(&mut ctx).expect("Runtime error");
     assert_eq!(result, Value::Int(100));

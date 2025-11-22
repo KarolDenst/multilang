@@ -1,4 +1,6 @@
 use crate::error::RuntimeError;
+use crate::grammar::Rule;
+use crate::node::ParsedChildren;
 use crate::node::{Context, Node, Value};
 
 #[derive(Debug, Clone, Copy)]
@@ -58,7 +60,7 @@ impl Node for Factor {
         }
     }
 
-    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         // Factor = Atom MulOp Factor | Atom
         let left = children.take_child("").unwrap(); // Atom
 

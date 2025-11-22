@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::RuntimeError;
+use crate::grammar::Rule;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
@@ -305,7 +306,7 @@ pub trait Node {
     }
 
     // Static method to construct node from children
-    fn from_children(rule_name: &str, children: ParsedChildren) -> Box<dyn Node>
+    fn from_children(rule: Rule, children: ParsedChildren) -> Box<dyn Node>
     where
         Self: Sized;
 

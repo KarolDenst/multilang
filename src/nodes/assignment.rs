@@ -7,6 +7,8 @@ pub struct Assignment {
     pub expr: Box<dyn Node>,
 }
 
+use crate::grammar::Rule;
+
 impl Node for Assignment {
     fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
         let value = self.expr.run(ctx)?;
@@ -14,12 +16,12 @@ impl Node for Assignment {
         Ok(Value::Void)
     }
 
-    fn from_children(rule_name: &str, mut children: ParsedChildren) -> Box<dyn Node>
+    fn from_children(rule: Rule, mut children: ParsedChildren) -> Box<dyn Node>
     where
         Self: Sized,
     {
-        if rule_name != "Assignment" {
-            panic!("Assignment::from_children called with rule {}", rule_name);
+        if rule != Rule::Assignment {
+            panic!("Assignment::from_children called with rule {:?}", rule);
         }
 
         let variable_node = children

@@ -1,13 +1,11 @@
-use multilang::grammar::Grammar;
+use multilang::grammar::{Grammar, Rule};
 use multilang::node::{Context, Value};
 use multilang::parser::Parser;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 fn test_script(grammar_def: &str, input: &str, expected: Value) {
     let grammar = Grammar::parse(grammar_def);
     let parser = Parser::new(&grammar, input);
-    let program_node = parser.parse("Program").expect("Parsing failed");
+    let program_node = parser.parse(Rule::Program).expect("Parsing failed");
     let mut ctx = Context::new();
     let result = program_node.run(&mut ctx).expect("Runtime error");
     assert_eq!(result, expected);
@@ -95,7 +93,7 @@ fn run_code(code: &str) -> Value {
 
     let grammar = Grammar::parse(grammar_def);
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Failed to parse");
+    let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Runtime error")
 }
@@ -188,7 +186,7 @@ fn test_negative_numbers() {
     let code = "return -5";
     let parser = Parser::new(&grammar, code);
     let node = parser
-        .parse("Program")
+        .parse(Rule::Program)
         .expect("Failed to parse negative int");
     let mut ctx = Context::new();
     let result = node.run(&mut ctx).expect("Runtime error");
@@ -198,7 +196,7 @@ fn test_negative_numbers() {
     let code = "return -3.14";
     let parser = Parser::new(&grammar, code);
     let node = parser
-        .parse("Program")
+        .parse(Rule::Program)
         .expect("Failed to parse negative float");
     let mut ctx = Context::new();
     let result = node.run(&mut ctx).expect("Runtime error");
@@ -212,7 +210,7 @@ fn test_negative_numbers() {
     let code = "return 5 + -3";
     let parser = Parser::new(&grammar, code);
     let node = parser
-        .parse("Program")
+        .parse(Rule::Program)
         .expect("Failed to parse arithmetic with negative");
     let mut ctx = Context::new();
     let result = node.run(&mut ctx).expect("Runtime error");
@@ -247,7 +245,7 @@ fn test_modulo() {
 
     let code = "return 10 % 3";
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Failed to parse modulo");
+    let node = parser.parse(Rule::Program).expect("Failed to parse modulo");
     let mut ctx = Context::new();
     let result = node.run(&mut ctx).expect("Runtime error");
     assert_eq!(result, Value::Int(1));

@@ -1,3 +1,5 @@
+use crate::grammar::Rule;
+
 use crate::error::RuntimeError;
 use crate::node::{Context, Node, ParsedChildren, Value};
 use std::cell::RefCell;
@@ -23,7 +25,7 @@ impl Node for MapNode {
         Ok(Value::Map(Rc::new(RefCell::new(map))))
     }
 
-    fn from_children(_rule_name: &str, mut children: ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         // MapLiteral = "{" MapEntries "}"
         // MapLiteral = "{" "}"
         // MapEntries = MapEntry "," MapEntries
@@ -76,7 +78,7 @@ impl Node for MapEntriesNode {
         self.entries
     }
 
-    fn from_children(_rule_name: &str, mut children: ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         // MapEntries = MapEntry "," MapEntries
         // MapEntries = MapEntry
 
@@ -119,7 +121,7 @@ impl Node for MapEntryNode {
         vec![(self.key, self.value)]
     }
 
-    fn from_children(_rule_name: &str, mut children: ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         // MapEntry = Key ":" Expr
         // Key = String | Identifier
 

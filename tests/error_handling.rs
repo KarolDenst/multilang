@@ -1,5 +1,5 @@
-use multilang::grammar::Grammar;
-use multilang::node::{Context, Value};
+use multilang::grammar::{Grammar, Rule};
+use multilang::node::Context;
 use multilang::parser::Parser;
 
 fn get_grammar() -> Grammar {
@@ -49,7 +49,7 @@ fn test_parser_error_location() {
         }
     "#;
     let parser = Parser::new(&grammar, code);
-    let result = parser.parse("Program");
+    let result = parser.parse(Rule::Program);
 
     match result {
         Ok(_) => {
@@ -73,7 +73,7 @@ fn test_runtime_div_by_zero() {
         return 10 / 0
     "#;
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Parsing failed");
+    let node = parser.parse(Rule::Program).expect("Parsing failed");
     let mut ctx = Context::new();
     let result = node.run(&mut ctx);
 
@@ -93,7 +93,7 @@ fn test_runtime_function_not_found() {
         unknown_func()
     "#;
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Parsing failed");
+    let node = parser.parse(Rule::Program).expect("Parsing failed");
     let mut ctx = Context::new();
     let result = node.run(&mut ctx);
 
@@ -125,7 +125,7 @@ fn test_stack_trace() {
         a()
     "#;
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Parsing failed");
+    let node = parser.parse(Rule::Program).expect("Parsing failed");
     let mut ctx = Context::new();
     let result = node.run(&mut ctx);
 

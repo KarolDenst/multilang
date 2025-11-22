@@ -1,4 +1,4 @@
-use multilang::grammar::Grammar;
+use multilang::grammar::{Grammar, Rule};
 use multilang::node::{Context, Value};
 use multilang::parser::Parser;
 
@@ -21,7 +21,9 @@ fn test_comments() {
     "#;
 
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Failed to parse comments");
+    let node = parser
+        .parse(Rule::Program)
+        .expect("Failed to parse comments");
     let mut ctx = Context::new();
     let result = node.run(&mut ctx).expect("Runtime error");
     assert_eq!(result, Value::Int(10));

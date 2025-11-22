@@ -1,4 +1,6 @@
 use crate::error::RuntimeError;
+use crate::grammar::Rule;
+use crate::node::ParsedChildren;
 use crate::node::{Context, Node, Value};
 
 pub struct WhileNode {
@@ -25,7 +27,7 @@ impl Node for WhileNode {
         Ok(Value::Void)
     }
 
-    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         // WhileLoop = "while" condition:Expr "{" body:Block "}"
         // Or similar. The parser usually names children if we use labels in grammar.
         // Assuming grammar: WhileLoop = "while" condition:Expr "{" body:Block "}"

@@ -1,5 +1,5 @@
 use crate::error::{ParseError, RuntimeError};
-use crate::grammar::{Grammar, Pattern};
+use crate::grammar::{Grammar, Pattern, Rule};
 use crate::node::{Node, ParsedChildren, Value};
 use crate::nodes::list_node::ElementsNode;
 use crate::nodes::{
@@ -15,7 +15,7 @@ use std::collections::HashMap;
 pub struct Parser<'a> {
     grammar: &'a Grammar,
     input: &'a str,
-    cache: RefCell<HashMap<(String, usize), Option<(Box<dyn Node>, usize)>>>,
+    cache: RefCell<HashMap<(Rule, usize), Option<(Box<dyn Node>, usize)>>>,
 }
 
 impl<'a> Parser<'a> {
@@ -27,7 +27,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn parse(&self, rule_name: &str) -> Result<Box<dyn Node>, ParseError> {
+    pub fn parse(&self, rule_name: Rule) -> Result<Box<dyn Node>, ParseError> {
         let (node, pos) = self.parse_rule(rule_name, 0)?;
         let final_pos = self.skip_whitespace(pos);
         if final_pos < self.input.len() {
@@ -69,18 +69,18 @@ impl<'a> Parser<'a> {
 
     fn parse_rule(
         &self,
-        rule_name: &str,
+        rule_name: Rule,
         pos: usize,
     ) -> Result<(Box<dyn Node>, usize), ParseError> {
         // Check cache
-        let key = (rule_name.to_string(), pos);
+        let key = (rule_name, pos);
         if let Some(cached) = self.cache.borrow().get(&key) {
             return match cached {
                 Some((node, new_pos)) => Ok((node.box_clone(), *new_pos)),
                 None => {
                     let (line, col, line_content) = self.get_location(pos);
                     Err(ParseError {
-                        message: format!("Parsing failed for rule {} at pos {}", rule_name, pos),
+                        message: format!("Parsing failed for rule {:?} at pos {}", rule_name, pos),
                         line,
                         column: col,
                         line_content,
@@ -89,10 +89,10 @@ impl<'a> Parser<'a> {
             };
         }
 
-        let rules = self.grammar.rules.get(rule_name).ok_or_else(|| {
+        let rules = self.grammar.rules.get(&rule_name).ok_or_else(|| {
             let (line, col, line_content) = self.get_location(pos);
             ParseError {
-                message: format!("Rule not found: {}", rule_name),
+                message: format!("Rule not found: {:?}", rule_name),
                 line,
                 column: col,
                 line_content,
@@ -111,40 +111,55 @@ impl<'a> Parser<'a> {
                     let parsed_children = ParsedChildren::new(children_with_names, line);
 
                     let node: Box<dyn Node> = match rule_name {
-                        "Program" => Program::from_children(rule_name, parsed_children),
-                        "Stmt" => parsed_children.remaining().into_iter().next().unwrap().1,
-                        "Assignment" => Assignment::from_children(rule_name, parsed_children),
-                        "Return" => Return::from_children(rule_name, parsed_children),
-                        "Comparison" => Comparison::from_children(rule_name, parsed_children),
-                        "LogicalOr" | "LogicalAnd" => {
+                        Rule::Program => Program::from_children(rule_name, parsed_children),
+                        Rule::Stmt => parsed_children.remaining().into_iter().next().unwrap().1,
+                        Rule::Assignment => Assignment::from_children(rule_name, parsed_children),
+                        Rule::Return => Return::from_children(rule_name, parsed_children),
+                        Rule::Comparison => Comparison::from_children(rule_name, parsed_children),
+                        Rule::LogicalOr | Rule::LogicalAnd => {
                             Logical::from_children(rule_name, parsed_children)
                         }
-                        "Term" => Term::from_children(rule_name, parsed_children),
-                        "Factor" => Factor::from_children(rule_name, parsed_children),
-                        "Unary" => Unary::from_children(rule_name, parsed_children),
-                        "IfElse" | "IfThen" => If::from_children(rule_name, parsed_children),
-                        "Int" | "Float" | "String" | "True" | "False" => {
+                        Rule::Term => Term::from_children(rule_name, parsed_children),
+                        Rule::Factor => Factor::from_children(rule_name, parsed_children),
+                        Rule::Unary => Unary::from_children(rule_name, parsed_children),
+                        Rule::IfElse | Rule::IfThen => {
+                            If::from_children(rule_name, parsed_children)
+                        }
+                        Rule::Int | Rule::Float | Rule::String | Rule::True | Rule::False => {
                             Literal::from_children(rule_name, parsed_children)
                         }
-                        "FunctionDef" => FunctionDef::from_children(rule_name, parsed_children),
-                        "FunctionCall" => FunctionCall::from_children(rule_name, parsed_children),
-                        "ParamList" | "ArgList" => {
+                        Rule::FunctionDef => FunctionDef::from_children(rule_name, parsed_children),
+                        Rule::FunctionCall => {
+                            FunctionCall::from_children(rule_name, parsed_children)
+                        }
+                        Rule::ParamList | Rule::ArgList => {
                             ArgListNode::from_children(rule_name, parsed_children)
                         }
-                        "ListLiteral" => ListNode::from_children(rule_name, parsed_children),
-                        "Elements" => ElementsNode::from_children(rule_name, parsed_children),
-                        "MapLiteral" => MapNode::from_children(rule_name, parsed_children),
-                        "MapEntries" => MapEntriesNode::from_children(rule_name, parsed_children),
-                        "MapEntry" => MapEntryNode::from_children(rule_name, parsed_children),
-                        "ForLoop" => ForNode::from_children(rule_name, parsed_children),
-                        "WhileLoop" => WhileNode::from_children(rule_name, parsed_children),
-                        "Block" => Block::from_children(rule_name, parsed_children),
-                        "Identifier" => Variable::from_children(rule_name, parsed_children),
-                        "Expr" | "Atom" | "If" | "UnaryOp" | "Eq" | "Neq" | "Lt" | "Gt" | "Add"
-                        | "Sub" | "Mul" | "Div" | "Mod" | "Key" => {
-                            parsed_children.remaining().into_iter().next().unwrap().1
+                        Rule::ListLiteral => ListNode::from_children(rule_name, parsed_children),
+                        Rule::Elements => ElementsNode::from_children(rule_name, parsed_children),
+                        Rule::MapLiteral => MapNode::from_children(rule_name, parsed_children),
+                        Rule::MapEntries => {
+                            MapEntriesNode::from_children(rule_name, parsed_children)
                         }
-                        _ => panic!("Unknown rule: {}", rule_name),
+                        Rule::MapEntry => MapEntryNode::from_children(rule_name, parsed_children),
+                        Rule::ForLoop => ForNode::from_children(rule_name, parsed_children),
+                        Rule::WhileLoop => WhileNode::from_children(rule_name, parsed_children),
+                        Rule::Block => Block::from_children(rule_name, parsed_children),
+                        Rule::Identifier => Variable::from_children(rule_name, parsed_children),
+                        Rule::Expr
+                        | Rule::Atom
+                        | Rule::If
+                        | Rule::UnaryOp
+                        | Rule::Eq
+                        | Rule::Neq
+                        | Rule::Lt
+                        | Rule::Gt
+                        | Rule::Add
+                        | Rule::Sub
+                        | Rule::Mul
+                        | Rule::Div
+                        | Rule::Mod
+                        | Rule::Key => parsed_children.remaining().into_iter().next().unwrap().1, // _ => panic!("Unknown rule: {:?}", rule_name), // Exhaustive match means we don't need this, or we can keep it for safety if we add rules
                     };
 
                     // Cache success
@@ -161,7 +176,7 @@ impl<'a> Parser<'a> {
         self.cache.borrow_mut().insert(key, None);
         let (line, col, line_content) = self.get_location(pos);
         Err(ParseError {
-            message: format!("No rules matched for {}", rule_name),
+            message: format!("No rules matched for {:?}", rule_name),
             line,
             column: col,
             line_content,
@@ -221,8 +236,8 @@ impl<'a> Parser<'a> {
                         });
                     }
                 }
-                Pattern::RuleReference(name) => {
-                    let (node, new_pos) = self.parse_rule(name, pos)?;
+                Pattern::RuleReference(rule) => {
+                    let (node, new_pos) = self.parse_rule(*rule, pos)?;
                     children.push((None, node));
                     pos = new_pos;
                 }
@@ -270,8 +285,8 @@ impl<'a> Parser<'a> {
                             });
                         }
                     }
-                    Pattern::RuleReference(ref_name) => {
-                        let (node, new_pos) = self.parse_rule(ref_name, pos)?;
+                    Pattern::RuleReference(ref_rule) => {
+                        let (node, new_pos) = self.parse_rule(*ref_rule, pos)?;
                         children.push((Some(name.clone()), node));
                         pos = new_pos;
                     }
@@ -287,7 +302,7 @@ impl<'a> Parser<'a> {
                 },
                 Pattern::Star(sub_pattern) => loop {
                     match &**sub_pattern {
-                        Pattern::RuleReference(name) => match self.parse_rule(name, pos) {
+                        Pattern::RuleReference(rule) => match self.parse_rule(*rule, pos) {
                             Ok((node, new_pos)) => {
                                 children.push((None, node));
                                 pos = new_pos;
@@ -351,7 +366,7 @@ impl Node for RawTokenNode {
         Some(self.text.clone())
     }
 
-    fn from_children(_rule_name: &str, _children: ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, _children: ParsedChildren) -> Box<dyn Node> {
         panic!("RawTokenNode should not be created from children");
     }
 

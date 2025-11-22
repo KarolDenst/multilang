@@ -1,3 +1,5 @@
+use crate::grammar::Rule;
+
 use crate::error::RuntimeError;
 use crate::node::{Context, Node, ParsedChildren, Value};
 use std::cell::RefCell;
@@ -26,21 +28,21 @@ impl Node for Literal {
         }
     }
 
-    fn from_children(rule_name: &str, mut children: ParsedChildren) -> Box<dyn Node> {
+    fn from_children(rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         let child = children
             .take_child("")
             .or_else(|| children.remaining().into_iter().next().map(|(_, n)| n));
 
-        let value = match rule_name {
-            "Int" => {
+        let value = match rule {
+            Rule::Int => {
                 let text = child.unwrap().text().unwrap_or_default();
                 Value::Int(text.parse().unwrap_or(0))
             }
-            "Float" => {
+            Rule::Float => {
                 let text = child.unwrap().text().unwrap_or_default();
                 Value::Float(text.parse().unwrap_or(0.0))
             }
-            "String" => {
+            Rule::String => {
                 let text = child.unwrap().text().unwrap_or_default();
                 // Remove quotes
                 let content = if text.len() >= 2 {
@@ -50,9 +52,9 @@ impl Node for Literal {
                 };
                 Value::String(Rc::new(RefCell::new(content)))
             }
-            "True" => Value::Bool(true),
-            "False" => Value::Bool(false),
-            _ => panic!("Unknown rule for Literal: {}", rule_name),
+            Rule::True => Value::Bool(true),
+            Rule::False => Value::Bool(false),
+            _ => panic!("Unknown rule for Literal: {:?}", rule),
         };
 
         Box::new(Literal { value })

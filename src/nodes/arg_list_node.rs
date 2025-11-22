@@ -6,8 +6,12 @@ pub struct ArgListNode {
     pub args: Option<Vec<Box<dyn Node>>>,
 }
 
+use crate::grammar::Rule;
+use crate::node::ParsedChildren;
+
 impl Node for ArgListNode {
     fn run(&self, _ctx: &mut Context) -> Result<Value, RuntimeError> {
+        // ArgList doesn't run directly, it's used by FunctionCall
         Ok(Value::Void)
     }
 
@@ -23,8 +27,8 @@ impl Node for ArgListNode {
         self.args.unwrap_or_default()
     }
 
-    fn from_children(rule_name: &str, children: crate::node::ParsedChildren) -> Box<dyn Node> {
-        if rule_name == "ParamList" {
+    fn from_children(rule: Rule, children: ParsedChildren) -> Box<dyn Node> {
+        if rule == Rule::ParamList {
             let mut params = Vec::new();
             for item in children.remaining() {
                 let (_, node) = item;
@@ -40,7 +44,7 @@ impl Node for ArgListNode {
                 params: Some(params),
                 args: None,
             })
-        } else if rule_name == "ArgList" {
+        } else if rule == Rule::ArgList {
             let mut args = Vec::new();
             for item in children.remaining() {
                 let (_, node) = item;
@@ -61,7 +65,7 @@ impl Node for ArgListNode {
                 args: Some(args),
             })
         } else {
-            panic!("Unknown rule for ArgListNode: {}", rule_name);
+            panic!("Unknown rule for ArgListNode: {:?}", rule);
         }
     }
 

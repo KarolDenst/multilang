@@ -1,4 +1,6 @@
 use crate::error::RuntimeError;
+use crate::grammar::Rule;
+use crate::node::ParsedChildren;
 use crate::node::{Context, Node, Value};
 
 #[derive(Debug, Clone, Copy)]
@@ -37,7 +39,7 @@ impl Node for Unary {
         }
     }
 
-    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         // Unary = UnaryOp Unary | Atom
         // UnaryOp = [!] | [-]
 

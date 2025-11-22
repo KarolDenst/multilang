@@ -1,4 +1,6 @@
 use crate::error::RuntimeError;
+use crate::grammar::Rule;
+use crate::node::ParsedChildren;
 use crate::node::{Context, Node, Value};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -19,8 +21,8 @@ impl Node for ElementsNode {
         })
     }
 
-    fn from_children(rule_name: &str, children: crate::node::ParsedChildren) -> Box<dyn Node> {
-        if rule_name == "Elements" {
+    fn from_children(rule: Rule, children: ParsedChildren) -> Box<dyn Node> {
+        if rule == Rule::Elements {
             let mut elements = Vec::new();
             for item in children.remaining() {
                 let (_, node) = item;
@@ -38,7 +40,7 @@ impl Node for ElementsNode {
             }
             Box::new(ElementsNode { elements })
         } else {
-            panic!("Unknown rule for ElementsNode: {}", rule_name);
+            panic!("Unknown rule for ElementsNode: {:?}", rule);
         }
     }
 
@@ -66,8 +68,8 @@ impl Node for ListNode {
         Ok(Value::List(Rc::new(RefCell::new(values))))
     }
 
-    fn from_children(rule_name: &str, children: crate::node::ParsedChildren) -> Box<dyn Node> {
-        if rule_name == "ListLiteral" {
+    fn from_children(rule: Rule, children: ParsedChildren) -> Box<dyn Node> {
+        if rule == Rule::ListLiteral {
             let mut elements = Vec::new();
             for item in children.remaining() {
                 let (_, node) = item;
@@ -78,7 +80,7 @@ impl Node for ListNode {
             }
             Box::new(ListNode { elements })
         } else {
-            panic!("Unknown rule for ListNode: {}", rule_name);
+            panic!("Unknown rule for ListNode: {:?}", rule);
         }
     }
 

@@ -1,4 +1,6 @@
 use crate::error::RuntimeError;
+use crate::grammar::Rule;
+use crate::node::ParsedChildren;
 use crate::node::{Context, Node, Value};
 
 pub struct Program {
@@ -15,10 +17,7 @@ impl Node for Program {
         Ok(last_value)
     }
 
-    fn from_children(
-        _rule_name: &str,
-        parsed_children: crate::node::ParsedChildren,
-    ) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, parsed_children: ParsedChildren) -> Box<dyn Node> {
         let children = parsed_children
             .remaining()
             .into_iter()

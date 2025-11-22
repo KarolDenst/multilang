@@ -1,11 +1,11 @@
-use multilang::grammar::Grammar;
+use multilang::grammar::{Grammar, Rule};
 use multilang::node::{Context, Value};
 use multilang::parser::Parser;
 
 fn get_grammar() -> Grammar {
     let grammar_def = r##"
         Program = Stmt*
-        Stmt = FunctionDef | FunctionCall | Print | Return | Assignment
+        Stmt = FunctionDef | FunctionCall | Return | Assignment
         FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
         FunctionDef = "fn" name:Identifier "(" ")" "{" body:Block "}"
         Block = Stmt*
@@ -60,7 +60,7 @@ fn test_list_creation() {
     let code = "x = [1, 2, 3]";
     let grammar = get_grammar();
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Failed to parse");
+    let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Failed to run");
 
@@ -81,7 +81,7 @@ fn test_list_append() {
     let code = "x = [1] append(x, 2)";
     let grammar = get_grammar();
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Failed to parse");
+    let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Failed to run");
 
@@ -101,7 +101,7 @@ fn test_list_get() {
     let code = "x = [10, 20] y = get(x, 1)";
     let grammar = get_grammar();
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Failed to parse");
+    let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Failed to run");
 
@@ -114,7 +114,7 @@ fn test_nested_list() {
     let code = "x = [[1], [2]]";
     let grammar = get_grammar();
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Failed to parse");
+    let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Failed to run");
 
@@ -138,7 +138,7 @@ fn test_list_mutability() {
     let code = "x = [1] y = x append(y, 2)";
     let grammar = get_grammar();
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Failed to parse");
+    let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Failed to run");
 
@@ -157,7 +157,7 @@ fn test_list_set() {
     let code = "l = [1, 2] set(l, 0, 10) x = get(l, 0)";
     let grammar = get_grammar();
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Failed to parse");
+    let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Failed to run");
 

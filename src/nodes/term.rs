@@ -1,5 +1,7 @@
 use crate::error::RuntimeError;
-use crate::node::{Context, Node, ParsedChildren, Value};
+use crate::grammar::Rule;
+use crate::node::ParsedChildren;
+use crate::node::{Context, Node, Value};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -48,7 +50,7 @@ impl Node for Term {
         }
     }
 
-    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         // Term = Factor AddOp Term | Factor
         let left = children.take_child("").unwrap(); // Factor
 

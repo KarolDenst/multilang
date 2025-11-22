@@ -1,4 +1,6 @@
 use crate::error::RuntimeError;
+use crate::grammar::Rule;
+use crate::node::ParsedChildren;
 use crate::node::{Context, Node, Value};
 
 pub struct ForNode {
@@ -32,7 +34,7 @@ impl Node for ForNode {
         }
     }
 
-    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         // ForLoop = "for" variable:Identifier "in" iterable:Expr "{" body:Block "}"
 
         let variable_node = children.take_child("variable").unwrap();

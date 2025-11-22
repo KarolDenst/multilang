@@ -1,4 +1,6 @@
 use crate::error::RuntimeError;
+use crate::grammar::Rule;
+use crate::node::ParsedChildren;
 use crate::node::{Context, Node, Value};
 
 #[derive(Debug, Clone, Copy)]
@@ -70,7 +72,7 @@ impl Node for Comparison {
         Ok(Value::Bool(result))
     }
 
-    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         // Comparison = Term CompOp Term | Term
         // If it's just Term, it will be returned directly by the parser logic if we set it up right,
         // OR we handle it here.

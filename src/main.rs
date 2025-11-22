@@ -1,4 +1,4 @@
-use multilang::grammar::Grammar;
+use multilang::grammar::{Grammar, Rule};
 use multilang::node::Context;
 use multilang::parser::Parser;
 
@@ -85,7 +85,7 @@ fn main() {
     // 3. Parse Input
     println!("Parsing input: '{}'", input);
     let parser = Parser::new(&grammar, input);
-    match parser.parse("Program") {
+    match parser.parse(Rule::Program) {
         Ok(program_node) => {
             println!("Parsing successful! Running program...");
             // 4. Run Program

@@ -1,13 +1,11 @@
-use multilang::grammar::Grammar;
+use multilang::grammar::{Grammar, Rule};
 use multilang::node::{Context, Value};
 use multilang::parser::Parser;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 fn run_code(code: &str) -> Value {
     let grammar_def = r#"
         Program = Stmt*
-        Stmt = FunctionDef | FunctionCall | Print | Return | Assignment | ForLoop | WhileLoop
+        Stmt = FunctionDef | FunctionCall | Return | Assignment | ForLoop | WhileLoop
         FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
         FunctionDef = "fn" name:Identifier "(" ")" "{" body:Block "}"
         Block = Stmt*
@@ -70,7 +68,7 @@ fn run_code(code: &str) -> Value {
 
     let grammar = Grammar::parse(grammar_def);
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Failed to parse");
+    let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Runtime error")
 }

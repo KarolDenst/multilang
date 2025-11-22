@@ -1,15 +1,11 @@
-use multilang::grammar::Grammar;
+use multilang::grammar::{Grammar, Rule};
 use multilang::node::{Context, Value};
 use multilang::parser::Parser;
 
 fn run_code_with_time(code: &str) -> Value {
     let grammar_def = r#"
         Program = Stmt*
-        Stmt = FunctionDef
-        Stmt = FunctionCall
-        Stmt = Return
-        Stmt = If
-        
+        Stmt = FunctionDef | FunctionCall | Return | If
         FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
         ParamList = name:Identifier "," params:ParamList
         ParamList = name:Identifier
@@ -58,7 +54,7 @@ fn run_code_with_time(code: &str) -> Value {
 
     let start_parse = std::time::Instant::now();
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Failed to parse");
+    let node = parser.parse(Rule::Program).expect("Failed to parse");
     println!("Code parse time: {:?}", start_parse.elapsed());
 
     let start_run = std::time::Instant::now();

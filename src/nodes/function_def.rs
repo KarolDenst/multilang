@@ -1,4 +1,6 @@
 use crate::error::RuntimeError;
+use crate::grammar::Rule;
+use crate::node::ParsedChildren;
 use crate::node::{Context, Node, Value};
 use std::rc::Rc;
 
@@ -21,7 +23,7 @@ impl Node for FunctionDef {
         Ok(Value::Void)
     }
 
-    fn from_children(_rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         let line = children.line;
         let name_node = children.take_child("name").unwrap();
         let name = name_node.text().unwrap_or_default();

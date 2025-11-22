@@ -1,12 +1,11 @@
-use multilang::grammar::Grammar;
+use multilang::grammar::{Grammar, Rule};
 use multilang::node::{Context, Value};
 use multilang::parser::Parser;
 
 fn test_script(grammar_def: &str, input: &str, expected: Value) {
     let grammar = Grammar::parse(grammar_def);
     let parser = Parser::new(&grammar, input);
-    let program_node = parser.parse("Program").expect("Parsing failed");
-    let mut ctx = Context::new();
+    let program_node = parser.parse(Rule::Program).expect("Parsing failed");
     let mut ctx = Context::new();
     let result = program_node.run(&mut ctx).expect("Runtime error");
     assert_eq!(result, expected);
@@ -14,31 +13,6 @@ fn test_script(grammar_def: &str, input: &str, expected: Value) {
 
 #[test]
 fn test_if_true() {
-    let grammar = r#"
-        Program = Stmt*
-        Stmt = If | Print
-        If = IfThen
-        IfThen = "if" condition:Expr then:Block
-        Block = "{" Program "}"
-        Print = "print" Int
-        Expr = Comparison
-        Comparison = Term Eq Term | Term Neq Term | Term Lt Term | Term Gt Term | Term
-        Term = Factor Add Term | Factor Sub Term | Factor
-        Factor = Atom Mul Factor | Atom Div Factor | Atom
-        Atom = Float | Int | String | Identifier | FunctionCall | "(" Expr ")" | True | False
-        
-        Eq = [==]
-        Neq = [!=]
-        Lt = [<]
-        Gt = [>]
-        Add = [\+]
-        Sub = [-]
-        Mul = [\*]
-        Div = [/]
-        True = "true"
-        False = "false"
-        Int = [[0-9]+]
-    "#;
     // if true { print 10 }
     // Should print 10. But test_script checks return value.
     // Print returns Void.

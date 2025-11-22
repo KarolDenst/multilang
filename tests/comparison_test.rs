@@ -1,4 +1,4 @@
-use multilang::grammar::Grammar;
+use multilang::grammar::{Grammar, Rule};
 use multilang::node::{Context, Value};
 use multilang::parser::Parser;
 
@@ -36,7 +36,7 @@ fn run_code(code: &str) -> Value {
 
     let grammar = Grammar::parse(grammar_def);
     let parser = Parser::new(&grammar, code);
-    let node = parser.parse("Program").expect("Failed to parse");
+    let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Runtime error")
 }

@@ -1,4 +1,6 @@
 use crate::error::RuntimeError;
+use crate::grammar::Rule;
+use crate::node::ParsedChildren;
 use crate::node::{Context, Node, Value};
 
 #[derive(Debug, Clone, Copy)]
@@ -65,7 +67,7 @@ impl Node for Logical {
         }
     }
 
-    fn from_children(rule_name: &str, mut children: crate::node::ParsedChildren) -> Box<dyn Node> {
+    fn from_children(rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
         // LogicalOr = LogicalAnd "||" LogicalOr | LogicalAnd
         // LogicalAnd = Comparison "&&" LogicalAnd | Comparison
 
@@ -73,10 +75,10 @@ impl Node for Logical {
 
         // Check if we have a second child (the recursive part)
         if let Some(right) = children.take_child("") {
-            let op = match rule_name {
-                "LogicalAnd" => LogOp::And,
-                "LogicalOr" => LogOp::Or,
-                _ => panic!("Unknown logical rule: {}", rule_name),
+            let op = match rule {
+                Rule::LogicalAnd => LogOp::And,
+                Rule::LogicalOr => LogOp::Or,
+                _ => panic!("Unknown logical rule: {:?}", rule),
             };
             Box::new(Logical { op, left, right })
         } else {
