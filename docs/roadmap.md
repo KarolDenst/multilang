@@ -12,7 +12,12 @@ This document lists the planned features and improvements for the project.
 - [x] Add comments.
 - [x] Add `Map` (Dictionary) data type.
 - [x] Add `String` indexing.
-- [ ] Change rule name from string into enum.
+- [x] Change rule name from string into enum.
+- [ ] Refactor:
+    - [ ] Move out build in functions into separate files
+    - [ ] Rearrange file structure
+    - [ ] Fix warrnings
+    - [ ] Remove old comments
 - [ ] Clean up code.
 - [ ] Add support for structs/classes and object-oriented programming.
 - [ ] Add more built-in functions (e.g., `len`, `input`, string manipulation).
