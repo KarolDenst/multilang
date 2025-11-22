@@ -1,10 +1,11 @@
 use multilang::grammar::Grammar;
-use multilang::node::Context;
+use multilang::node::{Context, Value};
 use multilang::parser::Parser;
+use std::cell::RefCell;
+use std::rc::Rc;
 
-fn main() {
-    // 1. Define Grammar
-    let grammar_def = r##"
+fn run_code(code: &str) -> Value {
+    let grammar_def = r#"
         Program = Stmt*
         Stmt = FunctionDef | FunctionCall | Print | Return | Assignment | ForLoop | WhileLoop
         FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
@@ -38,9 +39,6 @@ fn main() {
         ListLiteral = "[" Elements "]"
         ListLiteral = "[" "]"
         
-        ListLiteral = "[" Elements "]"
-        ListLiteral = "[" "]"
-        
         Elements = Expr "," Elements
         Elements = Expr
         
@@ -58,9 +56,9 @@ fn main() {
         Neq = [!=]
         Lt = [<]
         Gt = [>]
-        Add = [+]
+        Add = [\+]
         Sub = [-]
-        Mul = [*]
+        Mul = [\*]
         Div = [/]
         Mod = [%]
         
@@ -68,47 +66,69 @@ fn main() {
         Int = [[0-9]+]
         String = ["[^\"]*"]
         Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
-    "##;
-
-    println!("Parsing grammar...");
-    let grammar = Grammar::parse(grammar_def);
-
-    // 2. Define Input Script
-    let input = r#"
-        fn add(a, b) {
-            return a
-        }
-        print(100)
-        add(10, 20)
     "#;
 
-    // 3. Parse Input
-    println!("Parsing input: '{}'", input);
-    let parser = Parser::new(&grammar, input);
-    match parser.parse("Program") {
-        Ok(program_node) => {
-            println!("Parsing successful! Running program...");
-            // 4. Run Program
-            let mut ctx = Context::new();
+    let grammar = Grammar::parse(grammar_def);
+    let parser = Parser::new(&grammar, code);
+    let node = parser.parse("Program").expect("Failed to parse");
+    let mut ctx = Context::new();
+    node.run(&mut ctx).expect("Runtime error")
+}
 
-            match program_node.run(&mut ctx) {
-                Ok(result) => {
-                    println!("Program returned: {:?}", result);
+#[test]
+fn test_map_creation_and_access() {
+    let code = r#"
+        m = { "a": 1, "b": 2 }
+        return get(m, "a")
+    "#;
+    let result = run_code(code);
+    assert_eq!(result, Value::Int(1));
+}
 
-                    if let multilang::node::Value::Int(val) = result {
-                        assert_eq!(val, 10);
-                        println!("Assertion passed: Returned 10");
-                    } else {
-                        println!("Assertion failed: Expected Int(10), got {:?}", result);
-                    }
-                }
-                Err(e) => {
-                    println!("Runtime Error: {}", e);
-                }
-            }
-        }
-        Err(e) => {
-            println!("Parsing failed: {}", e);
-        }
+#[test]
+fn test_map_mutation() {
+    let code = r#"
+        m = { "a": 1 }
+        set(m, "a", 10)
+        return get(m, "a")
+    "#;
+    let result = run_code(code);
+    assert_eq!(result, Value::Int(10));
+}
+
+#[test]
+fn test_map_new_key() {
+    let code = r#"
+        m = {}
+        set(m, "new_key", 100)
+        return get(m, "new_key")
+    "#;
+    let result = run_code(code);
+    assert_eq!(result, Value::Int(100));
+}
+
+#[test]
+fn test_map_keys() {
+    let code = r#"
+        m = { "x": 1, "y": 2 }
+        k = keys(m)
+        return get(k, 0) // Order isn't guaranteed, but we expect a string
+    "#;
+    let result = run_code(code);
+    if let Value::String(_) = result {
+        // Pass
+    } else {
+        panic!("Expected string key, got {:?}", result);
     }
+}
+
+#[test]
+fn test_nested_map() {
+    let code = r#"
+        m = { "inner": { "val": 42 } }
+        inner = get(m, "inner")
+        return get(inner, "val")
+    "#;
+    let result = run_code(code);
+    assert_eq!(result, Value::Int(42));
 }

@@ -10,6 +10,20 @@ impl Node for Literal {
         Ok(self.value.clone())
     }
 
+    fn text(&self) -> Option<String> {
+        match &self.value {
+            Value::Int(v) => Some(v.to_string()),
+            Value::Float(v) => Some(v.to_string()),
+            Value::String(v) => Some(format!("\"{}\"", v)), // Re-add quotes to match original token if possible, or just return content?
+            // The parser expects the original token text including quotes for String literals in MapEntryNode logic.
+            // However, we stripped quotes in from_children.
+            // MapEntryNode expects quotes if it was a String literal.
+            // Let's return the content with quotes for String.
+            Value::Bool(v) => Some(v.to_string()),
+            _ => None,
+        }
+    }
+
     fn from_children(rule_name: &str, mut children: ParsedChildren) -> Box<dyn Node> {
         let child = children
             .take_child("")

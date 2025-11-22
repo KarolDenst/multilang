@@ -12,6 +12,7 @@ pub enum Value {
     String(String),
     Bool(bool),
     List(Rc<RefCell<Vec<Value>>>),
+    Map(Rc<RefCell<HashMap<String, Value>>>),
     Void,
 }
 
@@ -66,34 +67,99 @@ impl Context {
                     stack_trace: vec![],
                 });
             }
-            let list = match &args[0] {
-                Value::List(l) => l.borrow(),
-                _ => {
-                    return Err(RuntimeError {
-                        message: "First argument to get must be a list".to_string(),
-                        stack_trace: vec![],
-                    });
+            match &args[0] {
+                Value::List(l) => {
+                    let list = l.borrow();
+                    let index = match &args[1] {
+                        Value::Int(i) => *i as usize,
+                        _ => {
+                            return Err(RuntimeError {
+                                message: "Second argument to get for List must be an integer"
+                                    .to_string(),
+                                stack_trace: vec![],
+                            });
+                        }
+                    };
+                    if index >= list.len() {
+                        return Err(RuntimeError {
+                            message: format!("Index {} out of bounds (len {})", index, list.len()),
+                            stack_trace: vec![],
+                        });
+                    }
+                    Ok(list[index].clone())
                 }
-            };
-
-            let index = match &args[1] {
-                Value::Int(i) => *i as usize,
-                _ => {
-                    return Err(RuntimeError {
-                        message: "Second argument to get must be an integer".to_string(),
-                        stack_trace: vec![],
-                    });
+                Value::Map(m) => {
+                    let map = m.borrow();
+                    let key = match &args[1] {
+                        Value::String(s) => s,
+                        _ => {
+                            return Err(RuntimeError {
+                                message: "Second argument to get for Map must be a string"
+                                    .to_string(),
+                                stack_trace: vec![],
+                            });
+                        }
+                    };
+                    match map.get(key) {
+                        Some(val) => Ok(val.clone()),
+                        None => Ok(Value::Void), // Or error? Void seems safer for now
+                    }
                 }
-            };
+                _ => Err(RuntimeError {
+                    message: "First argument to get must be a list or map".to_string(),
+                    stack_trace: vec![],
+                }),
+            }
+        });
 
-            if index >= list.len() {
+        ctx.builtins.insert("set".to_string(), |args| {
+            if args.len() != 3 {
                 return Err(RuntimeError {
-                    message: format!("Index {} out of bounds (len {})", index, list.len()),
+                    message: format!("set expects 3 arguments, got {}", args.len()),
                     stack_trace: vec![],
                 });
             }
+            match &args[0] {
+                Value::Map(m) => {
+                    let mut map = m.borrow_mut();
+                    let key = match &args[1] {
+                        Value::String(s) => s.clone(),
+                        _ => {
+                            return Err(RuntimeError {
+                                message: "Second argument to set for Map must be a string"
+                                    .to_string(),
+                                stack_trace: vec![],
+                            });
+                        }
+                    };
+                    map.insert(key, args[2].clone());
+                    Ok(Value::Void)
+                }
+                _ => Err(RuntimeError {
+                    message: "First argument to set must be a map".to_string(),
+                    stack_trace: vec![],
+                }),
+            }
+        });
 
-            Ok(list[index].clone())
+        ctx.builtins.insert("keys".to_string(), |args| {
+            if args.len() != 1 {
+                return Err(RuntimeError {
+                    message: format!("keys expects 1 argument, got {}", args.len()),
+                    stack_trace: vec![],
+                });
+            }
+            match &args[0] {
+                Value::Map(m) => {
+                    let map = m.borrow();
+                    let keys: Vec<Value> = map.keys().map(|k| Value::String(k.clone())).collect();
+                    Ok(Value::List(Rc::new(RefCell::new(keys))))
+                }
+                _ => Err(RuntimeError {
+                    message: "First argument to keys must be a map".to_string(),
+                    stack_trace: vec![],
+                }),
+            }
         });
 
         ctx
@@ -118,6 +184,12 @@ pub trait Node {
         false
     }
     fn into_list_elements(self: Box<Self>) -> Vec<Box<dyn Node>> {
+        vec![]
+    }
+    fn is_map_entries(&self) -> bool {
+        false
+    }
+    fn into_map_entries(self: Box<Self>) -> Vec<(String, Box<dyn Node>)> {
         vec![]
     }
 

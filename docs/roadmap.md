@@ -10,11 +10,11 @@ This document lists the planned features and improvements for the project.
 - [x] Add negative numbers.
 - [x] Add modulo operator.
 - [x] Add comments.
-- [ ] Add `Map` (Dictionary) data type.
+- [x] Add `Map` (Dictionary) data type.
+- [ ] Add `String` indexing.
 - [ ] Change rule name from string into enum.
 - [ ] Clean up code.
 - [ ] Add support for structs/classes and object-oriented programming.
-- [ ] Add `String` indexing.
 - [ ] Add more built-in functions (e.g., `len`, `input`, string manipulation).
 - [ ] Generate VS Code / Vim syntax highlighting extensions from the grammar.
 
