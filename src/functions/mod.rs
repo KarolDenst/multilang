@@ -1,5 +1,17 @@
+pub mod abs;
 pub mod append;
+pub mod chr;
 pub mod get;
+pub mod join;
 pub mod keys;
+pub mod len;
+pub mod ord;
 pub mod print;
+pub mod range;
+pub mod read_file;
+pub mod reverse;
 pub mod set;
+pub mod slice;
+pub mod sort;
+pub mod split;
+pub mod sum;

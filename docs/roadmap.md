@@ -18,8 +18,17 @@ This document lists the planned features and improvements for the project.
     - [x] Rearrange file structure
     - [x] Fix warrnings
     - [x] Remove old comments
-- [ ] Add support for structs/classes and object-oriented programming.
-- [ ] Add more built-in functions (e.g., `len`, `input`, string manipulation).
+- [x] Add support for structs/classes and object-oriented programming.
+- [x] Add more built-in functions:
+    - [x] `len`
+    - [x] `abs`
+    - [x] `sum`
+    - [x] `slice`
+    - [x] `split`, `join`
+    - [x] `sort`, `reverse`
+    - [x] `range`
+    - [x] `read_file`
+    - [x] `ord`, `chr`
 - [ ] Generate VS Code / Vim syntax highlighting extensions from the grammar.
 
 ## Completed Features

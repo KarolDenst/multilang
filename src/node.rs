@@ -73,6 +73,34 @@ impl Context {
         ctx.builtins
             .insert("append".to_string(), crate::functions::append::append_fn);
 
+        // New built-ins
+        ctx.builtins
+            .insert("len".to_string(), crate::functions::len::len_fn);
+        ctx.builtins
+            .insert("abs".to_string(), crate::functions::abs::abs_fn);
+        ctx.builtins
+            .insert("sum".to_string(), crate::functions::sum::sum_fn);
+        ctx.builtins
+            .insert("slice".to_string(), crate::functions::slice::slice_fn);
+        ctx.builtins
+            .insert("split".to_string(), crate::functions::split::split_fn);
+        ctx.builtins
+            .insert("join".to_string(), crate::functions::join::join_fn);
+        ctx.builtins
+            .insert("sort".to_string(), crate::functions::sort::sort_fn);
+        ctx.builtins
+            .insert("reverse".to_string(), crate::functions::reverse::reverse_fn);
+        ctx.builtins
+            .insert("range".to_string(), crate::functions::range::range_fn);
+        ctx.builtins.insert(
+            "read_file".to_string(),
+            crate::functions::read_file::read_file_fn,
+        );
+        ctx.builtins
+            .insert("ord".to_string(), crate::functions::ord::ord_fn);
+        ctx.builtins
+            .insert("chr".to_string(), crate::functions::chr::chr_fn);
+
         ctx
     }
 }
