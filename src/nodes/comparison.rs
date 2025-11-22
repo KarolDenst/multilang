@@ -33,12 +33,16 @@ impl Node for Comparison {
                 CompOp::Less => l < r,
                 CompOp::Greater => l > r,
             },
-            (Value::String(l), Value::String(r)) => match self.op {
-                CompOp::Equal => l == r,
-                CompOp::NotEqual => l != r,
-                CompOp::Less => l < r,
-                CompOp::Greater => l > r,
-            },
+            (Value::String(a), Value::String(b)) => {
+                let a = a.borrow();
+                let b = b.borrow();
+                match self.op {
+                    CompOp::Equal => *a == *b,
+                    CompOp::NotEqual => *a != *b,
+                    CompOp::Less => *a < *b,
+                    CompOp::Greater => *a > *b,
+                }
+            }
             (Value::Bool(l), Value::Bool(r)) => match self.op {
                 CompOp::Equal => l == r,
                 CompOp::NotEqual => l != r,

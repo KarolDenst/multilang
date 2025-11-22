@@ -1,5 +1,7 @@
 use crate::error::RuntimeError;
 use crate::node::{Context, Node, ParsedChildren, Value};
+use std::cell::RefCell;
+use std::rc::Rc;
 
 pub struct Literal {
     pub value: Value,
@@ -14,7 +16,7 @@ impl Node for Literal {
         match &self.value {
             Value::Int(v) => Some(v.to_string()),
             Value::Float(v) => Some(v.to_string()),
-            Value::String(v) => Some(format!("\"{}\"", v)), // Re-add quotes to match original token if possible, or just return content?
+            Value::String(v) => Some(format!("\"{}\"", v.borrow())), // Re-add quotes to match original token if possible, or just return content?
             // The parser expects the original token text including quotes for String literals in MapEntryNode logic.
             // However, we stripped quotes in from_children.
             // MapEntryNode expects quotes if it was a String literal.
@@ -46,7 +48,7 @@ impl Node for Literal {
                 } else {
                     String::new()
                 };
-                Value::String(content)
+                Value::String(Rc::new(RefCell::new(content)))
             }
             "True" => Value::Bool(true),
             "False" => Value::Bool(false),

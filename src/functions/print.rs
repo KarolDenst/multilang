@@ -16,7 +16,7 @@ fn print_value(val: &Value) {
     match val {
         Value::Int(v) => print!("{}", v),
         Value::Float(v) => print!("{}", v),
-        Value::String(v) => print!("{}", v),
+        Value::String(v) => print!("{}", v.borrow()),
         Value::Bool(v) => print!("{}", v),
         Value::List(l) => {
             let list = l.borrow();

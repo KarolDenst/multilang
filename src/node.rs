@@ -9,7 +9,7 @@ use crate::error::RuntimeError;
 pub enum Value {
     Int(i32),
     Float(f64),
-    String(String),
+    String(Rc<RefCell<String>>),
     Bool(bool),
     List(Rc<RefCell<Vec<Value>>>),
     Map(Rc<RefCell<HashMap<String, Value>>>),
@@ -41,24 +41,6 @@ impl Context {
         // Register built-ins
         ctx.builtins
             .insert("print".to_string(), crate::functions::print::print_fn);
-
-        ctx.builtins.insert("append".to_string(), |args| {
-            if args.len() != 2 {
-                return Err(RuntimeError {
-                    message: format!("append expects 2 arguments, got {}", args.len()),
-                    stack_trace: vec![],
-                });
-            }
-            if let Value::List(list) = &args[0] {
-                list.borrow_mut().push(args[1].clone());
-                Ok(Value::Void)
-            } else {
-                Err(RuntimeError {
-                    message: "First argument to append must be a list".to_string(),
-                    stack_trace: vec![],
-                })
-            }
-        });
 
         ctx.builtins.insert("get".to_string(), |args| {
             if args.len() != 2 {
@@ -100,13 +82,38 @@ impl Context {
                             });
                         }
                     };
-                    match map.get(key) {
+                    match map.get(key.borrow().as_str()) {
                         Some(val) => Ok(val.clone()),
                         None => Ok(Value::Void), // Or error? Void seems safer for now
                     }
                 }
+                Value::String(s) => {
+                    let string = s.borrow();
+                    let index = match &args[1] {
+                        Value::Int(i) => *i as usize,
+                        _ => {
+                            return Err(RuntimeError {
+                                message: "Second argument to get for String must be an integer"
+                                    .to_string(),
+                                stack_trace: vec![],
+                            });
+                        }
+                    };
+                    if let Some(ch) = string.chars().nth(index) {
+                        Ok(Value::String(Rc::new(RefCell::new(ch.to_string()))))
+                    } else {
+                        Err(RuntimeError {
+                            message: format!(
+                                "Index {} out of bounds (len {})",
+                                index,
+                                string.len()
+                            ),
+                            stack_trace: vec![],
+                        })
+                    }
+                }
                 _ => Err(RuntimeError {
-                    message: "First argument to get must be a list or map".to_string(),
+                    message: "First argument to get must be a list, map, or string".to_string(),
                     stack_trace: vec![],
                 }),
             }
@@ -123,7 +130,7 @@ impl Context {
                 Value::Map(m) => {
                     let mut map = m.borrow_mut();
                     let key = match &args[1] {
-                        Value::String(s) => s.clone(),
+                        Value::String(s) => s.borrow().clone(),
                         _ => {
                             return Err(RuntimeError {
                                 message: "Second argument to set for Map must be a string"
@@ -135,8 +142,76 @@ impl Context {
                     map.insert(key, args[2].clone());
                     Ok(Value::Void)
                 }
+                Value::List(l) => {
+                    let mut list = l.borrow_mut();
+                    let index = match &args[1] {
+                        Value::Int(i) => *i as usize,
+                        _ => {
+                            return Err(RuntimeError {
+                                message: "Second argument to set for List must be an integer"
+                                    .to_string(),
+                                stack_trace: vec![],
+                            });
+                        }
+                    };
+                    if index >= list.len() {
+                        return Err(RuntimeError {
+                            message: format!("Index {} out of bounds (len {})", index, list.len()),
+                            stack_trace: vec![],
+                        });
+                    }
+                    list[index] = args[2].clone();
+                    Ok(Value::Void)
+                }
+                Value::String(s) => {
+                    let mut string = s.borrow_mut();
+                    let index = match &args[1] {
+                        Value::Int(i) => *i as usize,
+                        _ => {
+                            return Err(RuntimeError {
+                                message: "Second argument to set for String must be an integer"
+                                    .to_string(),
+                                stack_trace: vec![],
+                            });
+                        }
+                    };
+                    let char_val = match &args[2] {
+                        Value::String(c) => c.borrow().clone(),
+                        _ => {
+                            return Err(RuntimeError {
+                                message: "Third argument to set for String must be a string"
+                                    .to_string(),
+                                stack_trace: vec![],
+                            });
+                        }
+                    };
+
+                    // This is a bit tricky with UTF-8.
+                    // We need to replace the nth char.
+                    // Simplest way: collect chars, replace, collect string.
+                    let mut chars: Vec<char> = string.chars().collect();
+                    if index >= chars.len() {
+                        return Err(RuntimeError {
+                            message: format!("Index {} out of bounds (len {})", index, chars.len()),
+                            stack_trace: vec![],
+                        });
+                    }
+
+                    // We expect char_val to be a single char string, or we take the first char?
+                    // Let's enforce single char for now or just take the first one.
+                    if let Some(c) = char_val.chars().next() {
+                        chars[index] = c;
+                        *string = chars.into_iter().collect();
+                        Ok(Value::Void)
+                    } else {
+                        Err(RuntimeError {
+                            message: "Value to set in string cannot be empty".to_string(),
+                            stack_trace: vec![],
+                        })
+                    }
+                }
                 _ => Err(RuntimeError {
-                    message: "First argument to set must be a map".to_string(),
+                    message: "First argument to set must be a map, list, or string".to_string(),
                     stack_trace: vec![],
                 }),
             }
@@ -152,11 +227,47 @@ impl Context {
             match &args[0] {
                 Value::Map(m) => {
                     let map = m.borrow();
-                    let keys: Vec<Value> = map.keys().map(|k| Value::String(k.clone())).collect();
+                    let keys: Vec<Value> = map
+                        .keys()
+                        .map(|k| Value::String(Rc::new(RefCell::new(k.clone()))))
+                        .collect();
                     Ok(Value::List(Rc::new(RefCell::new(keys))))
                 }
                 _ => Err(RuntimeError {
                     message: "First argument to keys must be a map".to_string(),
+                    stack_trace: vec![],
+                }),
+            }
+        });
+
+        ctx.builtins.insert("append".to_string(), |args| {
+            if args.len() != 2 {
+                return Err(RuntimeError {
+                    message: format!("append expects 2 arguments, got {}", args.len()),
+                    stack_trace: vec![],
+                });
+            }
+            match &args[0] {
+                Value::List(list) => {
+                    list.borrow_mut().push(args[1].clone());
+                    Ok(Value::Void)
+                }
+                Value::String(s) => {
+                    let mut string = s.borrow_mut();
+                    match &args[1] {
+                        Value::String(other) => {
+                            string.push_str(&other.borrow());
+                            Ok(Value::Void)
+                        }
+                        _ => Err(RuntimeError {
+                            message: "Second argument to append for String must be a string"
+                                .to_string(),
+                            stack_trace: vec![],
+                        }),
+                    }
+                }
+                _ => Err(RuntimeError {
+                    message: "First argument to append must be a list or string".to_string(),
                     stack_trace: vec![],
                 }),
             }

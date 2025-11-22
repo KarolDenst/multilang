@@ -1,6 +1,8 @@
 use multilang::grammar::Grammar;
 use multilang::node::{Context, Value};
 use multilang::parser::Parser;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 fn test_script(grammar_def: &str, input: &str, expected: Value) {
     let grammar = Grammar::parse(grammar_def);
@@ -118,7 +120,7 @@ fn test_string_literal() {
     "#;
     let result = run_code(code);
     if let Value::String(val) = result {
-        assert_eq!(val, "hello world");
+        assert_eq!(*val.borrow(), "hello world");
     } else {
         panic!("Expected String, got {:?}", result);
     }
@@ -144,7 +146,7 @@ fn test_string_concatenation() {
     "#;
     let result = run_code(code);
     if let Value::String(val) = result {
-        assert_eq!(val, "hello world");
+        assert_eq!(*val.borrow(), "hello world");
     } else {
         panic!("Expected String, got {:?}", result);
     }

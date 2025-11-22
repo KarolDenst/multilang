@@ -1,8 +1,6 @@
 use multilang::grammar::Grammar;
 use multilang::node::{Context, Value};
 use multilang::parser::Parser;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 fn get_grammar() -> Grammar {
     let grammar_def = r##"
@@ -152,4 +150,17 @@ fn test_list_mutability() {
     } else {
         panic!("x is not a list");
     }
+}
+
+#[test]
+fn test_list_set() {
+    let code = "l = [1, 2] set(l, 0, 10) x = get(l, 0)";
+    let grammar = get_grammar();
+    let parser = Parser::new(&grammar, code);
+    let node = parser.parse("Program").expect("Failed to parse");
+    let mut ctx = Context::new();
+    node.run(&mut ctx).expect("Failed to run");
+
+    let x = ctx.variables.get("x").expect("Variable x not found");
+    assert_eq!(*x, Value::Int(10));
 }

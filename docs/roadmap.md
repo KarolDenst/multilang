@@ -11,7 +11,7 @@ This document lists the planned features and improvements for the project.
 - [x] Add modulo operator.
 - [x] Add comments.
 - [x] Add `Map` (Dictionary) data type.
-- [ ] Add `String` indexing.
+- [x] Add `String` indexing.
 - [ ] Change rule name from string into enum.
 - [ ] Clean up code.
 - [ ] Add support for structs/classes and object-oriented programming.

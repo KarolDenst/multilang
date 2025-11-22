@@ -1,5 +1,7 @@
 use crate::error::RuntimeError;
-use crate::node::{Context, Node, Value};
+use crate::node::{Context, Node, ParsedChildren, Value};
+use std::cell::RefCell;
+use std::rc::Rc;
 
 #[derive(Debug, Clone, Copy)]
 pub enum AddOp {
@@ -28,7 +30,9 @@ impl Node for Term {
                 AddOp::Sub => Ok(Value::Float(l - r)),
             },
             (Value::String(l), Value::String(r)) => match self.op {
-                AddOp::Add => Ok(Value::String(l + &r)),
+                AddOp::Add => Ok(Value::String(Rc::new(RefCell::new(
+                    l.borrow().clone() + &r.borrow(),
+                )))),
                 AddOp::Sub => Err(RuntimeError {
                     message: "Subtraction not supported for strings".to_string(),
                     stack_trace: vec![],
