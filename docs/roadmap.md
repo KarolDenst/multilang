@@ -14,11 +14,10 @@ This document lists the planned features and improvements for the project.
 - [x] Add `String` indexing.
 - [x] Change rule name from string into enum.
 - [ ] Refactor:
-    - [ ] Move out build in functions into separate files
+    - [x] Move out built in functions into separate files
     - [ ] Rearrange file structure
     - [ ] Fix warrnings
     - [ ] Remove old comments
-- [ ] Clean up code.
 - [ ] Add support for structs/classes and object-oriented programming.
 - [ ] Add more built-in functions (e.g., `len`, `input`, string manipulation).
 - [ ] Generate VS Code / Vim syntax highlighting extensions from the grammar.
