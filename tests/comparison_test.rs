@@ -83,8 +83,66 @@ fn test_precedence() {
 
 #[test]
 fn test_configurable_comparison() {
-    let grammar_def =
-        std::fs::read_to_string("tests/resources/configurable_ops/grammar.mlg").unwrap();
+    let grammar_def = r#"
+        Program = Stmt*
+        Stmt = Return | WhileLoop | IfElse | IfThen | FunctionDef | FunctionCall | Assignment | Expr
+
+        Return = "return" value:Expr
+
+        WhileLoop = "while" condition:Expr "{" body:Block "}"
+
+        IfElse = "if" condition:Expr "{" then:Block "}" "else" "{" else:Block "}"
+        IfThen = "if" condition:Expr "{" then:Block "}"
+
+
+        FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
+        FunctionDef = "fn" name:Identifier "(" ")" "{" body:Block "}"
+
+        Block = Stmt*
+
+        FunctionCall = name:Identifier "(" args:ArgList ")"
+        FunctionCall = name:Identifier "(" ")"
+
+        Assignment = name:Identifier "=" value:Expr
+
+        ParamList = Identifier "," params:ParamList
+        ParamList = Identifier
+
+        ArgList = Expr "," args:ArgList
+        ArgList = Expr
+
+        Expr = LogicalOr
+        LogicalOr = LogicalAnd "||" LogicalOr | LogicalAnd
+        LogicalAnd = Comparison "&&" LogicalAnd | Comparison
+        Comparison = Term Eq Term | Term Neq Term | Term Lt Term | Term Gt Term | Term
+        Term = Factor Add Term | Factor Sub Term | Factor
+        Factor = Unary Mul Factor | Unary Div Factor | Unary Mod Factor | Unary
+        Unary = UnaryOp Unary | Atom
+
+        Atom = Float | Int | String | FunctionCall | Identifier | ListLiteral | "(" Expr ")"
+
+        ListLiteral = "[" Elements "]"
+        ListLiteral = "[" "]"
+
+        Elements = Expr "," Elements
+        Elements = Expr
+
+        UnaryOp = [!]
+        Eq = [==]
+        Neq = [!=]
+        Lt = [<]
+        Gt = [>]
+        Add = [\+] | [plus]
+        Sub = [-] | [minus]
+        Mul = [\*] | [times]
+        Div = [/] | [divide]
+        Mod = [%] | [modulo]
+
+        Float = [[0-9]+\.[0-9]+]
+        Int = [[0-9]+]
+        String = ["[^"]*"]
+        Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
+    "#;
     let grammar = Grammar::parse(&grammar_def);
 
     // Test "4 plus 5 == 9"
