@@ -1,12 +1,14 @@
-use multilang::grammar::{Grammar, Rule};
-use multilang::node::{Context, Value};
-use multilang::parser::Parser;
+use multilang::grammar::Grammar;
 
-fn run_code(code: &str) -> Value {
+mod test_utils;
+
+fn get_comparison_grammar() -> Grammar {
     let grammar_def = r#"
         Program = Stmt*
+        Stmt = Print
         Stmt = FunctionCall
         Stmt = Return
+        Print = "print" "(" Expr ")"
         FunctionCall = name:Identifier "(" args:ArgList ")"
         FunctionCall = name:Identifier "(" ")"
         ArgList = Expr "," args:ArgList
@@ -33,60 +35,61 @@ fn run_code(code: &str) -> Value {
         String = ["[^\"]*"]
         Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
     "#;
-
-    let grammar = Grammar::parse(grammar_def);
-    let parser = Parser::new(&grammar, code);
-    let node = parser.parse(Rule::Program).expect("Failed to parse");
-    let mut ctx = Context::new();
-    node.run(&mut ctx).expect("Runtime error")
+    Grammar::parse(grammar_def)
 }
 
 #[test]
 fn test_int_equality() {
-    assert_eq!(run_code("return 1 == 1"), Value::Bool(true));
-    assert_eq!(run_code("return 1 == 2"), Value::Bool(false));
-    assert_eq!(run_code("return 1 != 2"), Value::Bool(true));
-    assert_eq!(run_code("return 1 != 1"), Value::Bool(false));
+    let grammar = get_comparison_grammar();
+    test_utils::run_code_and_check(&grammar, "print(1 == 1)", "true");
+    test_utils::run_code_and_check(&grammar, "print(1 == 2)", "false");
+    test_utils::run_code_and_check(&grammar, "print(1 != 2)", "true");
+    test_utils::run_code_and_check(&grammar, "print(1 != 1)", "false");
 }
 
 #[test]
 fn test_int_comparison() {
-    assert_eq!(run_code("return 1 < 2"), Value::Bool(true));
-    assert_eq!(run_code("return 2 < 1"), Value::Bool(false));
-    assert_eq!(run_code("return 2 > 1"), Value::Bool(true));
-    assert_eq!(run_code("return 1 > 2"), Value::Bool(false));
+    let grammar = get_comparison_grammar();
+    test_utils::run_code_and_check(&grammar, "print(1 < 2)", "true");
+    test_utils::run_code_and_check(&grammar, "print(2 < 1)", "false");
+    test_utils::run_code_and_check(&grammar, "print(2 > 1)", "true");
+    test_utils::run_code_and_check(&grammar, "print(1 > 2)", "false");
 }
 
 #[test]
 fn test_float_comparison() {
-    assert_eq!(run_code("return 1.0 == 1.0"), Value::Bool(true));
-    assert_eq!(run_code("return 1.0 != 2.0"), Value::Bool(true));
-    assert_eq!(run_code("return 1.0 < 2.0"), Value::Bool(true));
-    assert_eq!(run_code("return 2.0 > 1.0"), Value::Bool(true));
+    let grammar = get_comparison_grammar();
+    test_utils::run_code_and_check(&grammar, "print(1.0 == 1.0)", "true");
+    test_utils::run_code_and_check(&grammar, "print(1.0 != 2.0)", "true");
+    test_utils::run_code_and_check(&grammar, "print(1.0 < 2.0)", "true");
+    test_utils::run_code_and_check(&grammar, "print(2.0 > 1.0)", "true");
 }
 
 #[test]
 fn test_string_comparison() {
-    assert_eq!(run_code("return \"a\" == \"a\""), Value::Bool(true));
-    assert_eq!(run_code("return \"a\" != \"b\""), Value::Bool(true));
-    assert_eq!(run_code("return \"a\" < \"b\""), Value::Bool(true));
-    assert_eq!(run_code("return \"b\" > \"a\""), Value::Bool(true));
+    let grammar = get_comparison_grammar();
+    test_utils::run_code_and_check(&grammar, "print(\"a\" == \"a\")", "true");
+    test_utils::run_code_and_check(&grammar, "print(\"a\" != \"b\")", "true");
+    test_utils::run_code_and_check(&grammar, "print(\"a\" < \"b\")", "true");
+    test_utils::run_code_and_check(&grammar, "print(\"b\" > \"a\")", "true");
 }
 
 #[test]
 fn test_precedence() {
+    let grammar = get_comparison_grammar();
     // 1 + 2 < 4 -> 3 < 4 -> True
-    assert_eq!(run_code("return 1 + 2 < 4"), Value::Bool(true));
+    test_utils::run_code_and_check(&grammar, "print(1 + 2 < 4)", "true");
     // 1 + 2 == 3 -> 3 == 3 -> True
-    assert_eq!(run_code("return 1 + 2 == 3"), Value::Bool(true));
+    test_utils::run_code_and_check(&grammar, "print(1 + 2 == 3)", "true");
 }
 
 #[test]
 fn test_configurable_comparison() {
     let grammar_def = r#"
         Program = Stmt*
-        Stmt = Return | WhileLoop | IfElse | IfThen | FunctionDef | FunctionCall | Assignment | Expr
+        Stmt = Print | Return | WhileLoop | IfElse | IfThen | FunctionDef | FunctionCall | Assignment | Expr
 
+        Print = "print" "(" Expr ")"
         Return = "return" value:Expr
 
         WhileLoop = "while" condition:Expr "{" body:Block "}"
@@ -146,12 +149,6 @@ fn test_configurable_comparison() {
     let grammar = Grammar::parse(&grammar_def);
 
     // Test "4 plus 5 == 9"
-    let code = "return 4 plus 5 == 9";
-    let parser = Parser::new(&grammar, code);
-    let node = parser
-        .parse(Rule::Program)
-        .expect("Failed to parse comparison");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Bool(true));
+    let code = "print(4 plus 5 == 9)";
+    test_utils::run_code_and_check(&grammar, code, "true");
 }

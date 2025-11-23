@@ -1,80 +1,40 @@
-use multilang::grammar::{Grammar, Rule};
-use multilang::node::{Context, Value};
-use multilang::parser::Parser;
+use multilang::grammar::Grammar;
+use std::fs;
 
-fn test_script(grammar_def: &str, input: &str, expected: Value) {
-    let grammar = Grammar::parse(grammar_def);
-    let parser = Parser::new(&grammar, input);
-    let program_node = parser.parse(Rule::Program).expect("Parsing failed");
-    let mut ctx = Context::new();
-    let result = program_node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, expected);
+mod test_utils;
+
+fn load_standard_grammar() -> Grammar {
+    let grammar_def = fs::read_to_string("tests/resources/standard/grammar.mlg")
+        .expect("Failed to read standard grammar");
+    Grammar::parse(&grammar_def)
 }
 
 #[test]
 fn test_function_args() {
-    let grammar = r#"
-        Program = Stmt*
-        Stmt = FunctionDef | FunctionCall | Return
-        FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
-        FunctionDef = "fn" name:Identifier "(" ")" "{" body:Block "}"
-        Block = Stmt*
-        FunctionCall = name:Identifier "(" args:ArgList ")"
-        FunctionCall = name:Identifier "(" ")"
-        
-        ParamList = Identifier "," params:ParamList
-        ParamList = Identifier
-        
-        ArgList = Expr "," args:ArgList
-        ArgList = Expr
-        
-        Return = "return" Expr
-        Expr = Int | Identifier | FunctionCall
-        Int = [[0-9]+]
-        Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
-    "#;
+    let grammar = load_standard_grammar();
 
     // Test single argument
     let input1 = r#"
         fn identity(x) {
             return x
         }
-        identity(42)
+        print(identity(42))
     "#;
-    test_script(grammar, input1, Value::Int(42));
+    test_utils::run_code_and_check(&grammar, input1, "42");
 
     // Test multiple arguments
     let input2 = r#"
         fn add(a, b) {
             return b
         }
-        add(10, 20)
+        print(add(10, 20))
     "#;
-    test_script(grammar, input2, Value::Int(20));
+    test_utils::run_code_and_check(&grammar, input2, "20");
 }
 
 #[test]
 fn test_nested_calls_with_args() {
-    let grammar = r#"
-        Program = Stmt*
-        Stmt = FunctionDef | FunctionCall | Return
-        FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
-        FunctionDef = "fn" name:Identifier "(" ")" "{" body:Block "}"
-        Block = Stmt*
-        FunctionCall = name:Identifier "(" args:ArgList ")"
-        FunctionCall = name:Identifier "(" ")"
-        
-        ParamList = Identifier "," params:ParamList
-        ParamList = Identifier
-        
-        ArgList = Expr "," args:ArgList
-        ArgList = Expr
-        
-        Return = "return" Expr
-        Expr = Int | Identifier | FunctionCall
-        Int = [[0-9]+]
-        Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
-    "#;
+    let grammar = load_standard_grammar();
 
     let input = r#"
         fn foo(x) {
@@ -83,8 +43,8 @@ fn test_nested_calls_with_args() {
         fn bar(y) {
             foo(y)
         }
-        bar(100)
+        print(bar(100))
     "#;
 
-    test_script(grammar, input, Value::Int(100));
+    test_utils::run_code_and_check(&grammar, input, "100");
 }

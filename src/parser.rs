@@ -165,6 +165,15 @@ impl<'a> Parser<'a> {
                         Rule::PostfixSuffix => {
                             PostfixSuffixNode::from_children(rule_name, parsed_children)
                         }
+                        Rule::Print => {
+                            let line = parsed_children.line;
+                            let expr = parsed_children.remaining().into_iter().next().unwrap().1;
+                            Box::new(FunctionCall {
+                                name: "print".to_string(),
+                                args: vec![expr],
+                                line,
+                            })
+                        }
                         Rule::Expr | Rule::Atom | Rule::If | Rule::Key => {
                             parsed_children.remaining().into_iter().next().unwrap().1
                         }

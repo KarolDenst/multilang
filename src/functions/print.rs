@@ -1,53 +1,60 @@
 use crate::error::RuntimeError;
 use crate::node::Value;
+use std::cell::RefCell;
+use std::rc::Rc;
+
+thread_local! {
+    pub static TEST_LOGS: RefCell<Option<Rc<RefCell<Vec<String>>>>> = RefCell::new(None);
+}
+
+fn write_output(s: &str) {
+    TEST_LOGS.with(|logs| {
+        if let Some(logs) = &*logs.borrow() {
+            logs.borrow_mut().push(s.to_string());
+        } else {
+            print!("{}", s);
+        }
+    });
+}
 
 pub fn print_fn(args: Vec<Value>) -> Result<Value, RuntimeError> {
+    let mut output = String::new();
     for (i, arg) in args.iter().enumerate() {
         if i > 0 {
-            print!(" ");
+            output.push(' ');
         }
-        print_value(arg);
+        output.push_str(&format_value(arg));
     }
-    println!();
+    output.push('\n');
+    write_output(&output);
     Ok(Value::Void)
 }
 
-fn print_value(val: &Value) {
+fn format_value(val: &Value) -> String {
     match val {
-        Value::Int(v) => print!("{}", v),
-        Value::Float(v) => print!("{}", v),
-        Value::String(v) => print!("{}", v.borrow()),
-        Value::Bool(v) => print!("{}", v),
+        Value::Int(v) => format!("{}", v),
+        Value::Float(v) => format!("{}", v),
+        Value::String(v) => v.borrow().clone(),
+        Value::Bool(v) => format!("{}", v),
         Value::List(l) => {
             let list = l.borrow();
-            print!("[");
-            for (i, item) in list.iter().enumerate() {
-                if i > 0 {
-                    print!(", ");
-                }
-                print_value(item);
-            }
-            print!("]");
+            let elements: Vec<String> = list.iter().map(|v| format_value(v)).collect();
+            format!("[{}]", elements.join(", "))
         }
         Value::Map(m) => {
             let map = m.borrow();
-            print!("{{");
-            // Sort keys for deterministic output
             let mut keys: Vec<&String> = map.keys().collect();
             keys.sort();
-            for (i, key) in keys.iter().enumerate() {
-                if i > 0 {
-                    print!(", ");
-                }
-                print!("{}: ", key);
-                print_value(&map[*key]);
-            }
-            print!("}}");
+            let elements: Vec<String> = keys
+                .iter()
+                .map(|k| format!("{}: {}", k, format_value(&map[*k])))
+                .collect();
+            format!("{{{}}}", elements.join(", "))
         }
-        Value::Void => print!("(void)"),
+        Value::Void => "(void)".to_string(),
         Value::Object(obj) => {
             let obj = obj.borrow();
-            print!("<Object {}>", obj.class_name);
+            format!("<Object {}>", obj.class_name)
         }
     }
 }

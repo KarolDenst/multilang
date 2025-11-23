@@ -57,6 +57,7 @@ pub enum Rule {
     SelfReference,
     Postfix,
     PostfixSuffix,
+    Print,
 }
 
 impl FromStr for Rule {
@@ -118,6 +119,7 @@ impl FromStr for Rule {
             "SelfReference" => Ok(Rule::SelfReference),
             "Postfix" => Ok(Rule::Postfix),
             "PostfixSuffix" => Ok(Rule::PostfixSuffix),
+            "Print" => Ok(Rule::Print),
             _ => Err(format!("Unknown rule: {}", s)),
         }
     }

@@ -73,7 +73,6 @@ impl Context {
         ctx.builtins
             .insert("append".to_string(), crate::functions::append::append_fn);
 
-        // New built-ins
         ctx.builtins
             .insert("len".to_string(), crate::functions::len::len_fn);
         ctx.builtins

@@ -16,3 +16,5 @@
 
 result1 <- is_palindrome # 121 $
 result2 <- is_palindrome # 123 $
+print # result1 $
+print # result2 $

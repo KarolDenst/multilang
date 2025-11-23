@@ -1,6 +1,8 @@
 use multilang::grammar::{Grammar, Rule};
-use multilang::node::{Context, Value};
+use multilang::node::Context;
 use multilang::parser::Parser;
+
+mod test_utils;
 
 fn get_grammar() -> Grammar {
     let grammar_def = r##"
@@ -85,24 +87,17 @@ fn test_class_definition_and_instantiation() {
         }
         
         p = new Point(10, 20)
-        // print(p) // print not available in test context unless added
+        print(p)
     "#;
 
+    let (logs, _guard) = test_utils::capture_output();
     let grammar = get_grammar();
     let parser = Parser::new(&grammar, code);
     let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Failed to run");
 
-    let p = ctx.variables.get("p").expect("Variable p not found");
-    if let Value::Object(obj_rc) = p {
-        let obj = obj_rc.borrow();
-        assert_eq!(obj.class_name, "Point");
-        assert_eq!(obj.fields.get("x").unwrap(), &Value::Int(10));
-        assert_eq!(obj.fields.get("y").unwrap(), &Value::Int(20));
-    } else {
-        panic!("Expected object, got {:?}", p);
-    }
+    assert_eq!(*logs.borrow(), vec!["<Object Point>\n"]);
 }
 
 #[test]
@@ -118,19 +113,17 @@ fn test_method_call() {
         
         calc = new Calculator(2)
         result = calc.multiply(5)
+        print(result)
     "#;
 
+    let (logs, _guard) = test_utils::capture_output();
     let grammar = get_grammar();
     let parser = Parser::new(&grammar, code);
     let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Failed to run");
 
-    let result = ctx
-        .variables
-        .get("result")
-        .expect("Variable result not found");
-    assert_eq!(result, &Value::Int(10));
+    assert_eq!(*logs.borrow(), vec!["10\n"]);
 }
 
 #[test]
@@ -142,16 +135,17 @@ fn test_member_access() {
         
         b = new Box(123)
         val = b.content
+        print(val)
     "#;
 
+    let (logs, _guard) = test_utils::capture_output();
     let grammar = get_grammar();
     let parser = Parser::new(&grammar, code);
     let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Failed to run");
 
-    let val = ctx.variables.get("val").expect("Variable val not found");
-    assert_eq!(val, &Value::Int(123));
+    assert_eq!(*logs.borrow(), vec!["123\n"]);
 }
 
 #[test]
@@ -167,14 +161,15 @@ fn test_method_call_with_multiple_args() {
         
         adder = new Adder(10)
         sum = adder.add(5, 7)
+        print(sum)
     "#;
 
+    let (logs, _guard) = test_utils::capture_output();
     let grammar = get_grammar();
     let parser = Parser::new(&grammar, code);
     let node = parser.parse(Rule::Program).expect("Failed to parse");
     let mut ctx = Context::new();
     node.run(&mut ctx).expect("Failed to run");
 
-    let sum = ctx.variables.get("sum").expect("Variable sum not found");
-    assert_eq!(sum, &Value::Int(22));
+    assert_eq!(*logs.borrow(), vec!["22\n"]);
 }

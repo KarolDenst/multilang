@@ -21,3 +21,4 @@ fn fizzbuzz(n) {
 }
 
 result = fizzbuzz(15)
+print(result)

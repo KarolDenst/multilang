@@ -21,3 +21,4 @@ function fizzbuzz(n) do
 end
 
 result = fizzbuzz(15)
+print(result)

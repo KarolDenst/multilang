@@ -56,7 +56,9 @@ fn test_arithmetic_precedence() {
     test_script(grammar, "2 * 3 + 4", Value::Int(10));
 }
 
-fn run_code(code: &str) -> Value {
+mod test_utils;
+
+fn get_arithmetic_grammar() -> Grammar {
     let grammar_def = r#"
         Program = Stmt*
         Stmt = FunctionDef
@@ -90,64 +92,43 @@ fn run_code(code: &str) -> Value {
         String = ["[^\"]*"]
         Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
     "#;
-
-    let grammar = Grammar::parse(grammar_def);
-    let parser = Parser::new(&grammar, code);
-    let node = parser.parse(Rule::Program).expect("Failed to parse");
-    let mut ctx = Context::new();
-    node.run(&mut ctx).expect("Runtime error")
+    Grammar::parse(grammar_def)
 }
 
 #[test]
 fn test_float_literal() {
+    let grammar = get_arithmetic_grammar();
     let code = r#"
-        return 3.14
+        print(3.14)
     "#;
-    let result = run_code(code);
-    if let Value::Float(val) = result {
-        assert!((val - 3.14).abs() < 1e-6);
-    } else {
-        panic!("Expected Float, got {:?}", result);
-    }
+    test_utils::run_code_and_check(&grammar, code, "3.14");
 }
 
 #[test]
 fn test_string_literal() {
+    let grammar = get_arithmetic_grammar();
     let code = r#"
-        return "hello world"
+        print("hello world")
     "#;
-    let result = run_code(code);
-    if let Value::String(val) = result {
-        assert_eq!(*val.borrow(), "hello world");
-    } else {
-        panic!("Expected String, got {:?}", result);
-    }
+    test_utils::run_code_and_check(&grammar, code, "hello world");
 }
 
 #[test]
 fn test_float_arithmetic() {
+    let grammar = get_arithmetic_grammar();
     let code = r#"
-        return 1.5 + 2.5
+        print(1.5 + 2.5)
     "#;
-    let result = run_code(code);
-    if let Value::Float(val) = result {
-        assert!((val - 4.0).abs() < 1e-6);
-    } else {
-        panic!("Expected Float, got {:?}", result);
-    }
+    test_utils::run_code_and_check(&grammar, code, "4");
 }
 
 #[test]
 fn test_string_concatenation() {
+    let grammar = get_arithmetic_grammar();
     let code = r#"
-        return "hello" + " " + "world"
+        print("hello" + " " + "world")
     "#;
-    let result = run_code(code);
-    if let Value::String(val) = result {
-        assert_eq!(*val.borrow(), "hello world");
-    } else {
-        panic!("Expected String, got {:?}", result);
-    }
+    test_utils::run_code_and_check(&grammar, code, "hello world");
 }
 
 #[test]
@@ -161,7 +142,8 @@ fn test_negative_numbers() {
 
     let grammar_def = r#"
         Program = Stmt*
-        Stmt = Return
+        Stmt = Print | Return | Expr
+        Print = "print" "(" Expr ")"
         Return = "return" Expr
         
         Expr = Term
@@ -183,53 +165,36 @@ fn test_negative_numbers() {
     let grammar = Grammar::parse(grammar_def);
 
     // Test negative int
-    let code = "return -5";
-    let parser = Parser::new(&grammar, code);
-    let node = parser
-        .parse(Rule::Program)
-        .expect("Failed to parse negative int");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Int(-5));
+    let code = "print(-5)";
+    test_utils::run_code_and_check(&grammar, code, "-5");
 
     // Test negative float
-    let code = "return -3.14";
-    let parser = Parser::new(&grammar, code);
-    let node = parser
-        .parse(Rule::Program)
-        .expect("Failed to parse negative float");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    if let Value::Float(val) = result {
-        assert!((val - -3.14).abs() < 1e-6);
-    } else {
-        panic!("Expected Float, got {:?}", result);
-    }
+    let code = "print(-3.14)";
+    test_utils::run_code_and_check(&grammar, code, "-3.14");
 
     // Test arithmetic with negative
-    let code = "return 5 + -3";
-    let parser = Parser::new(&grammar, code);
-    let node = parser
-        .parse(Rule::Program)
-        .expect("Failed to parse arithmetic with negative");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Int(2));
+    let code = "print(5 + -3)";
+    test_utils::run_code_and_check(&grammar, code, "2");
 }
 
 #[test]
 fn test_modulo() {
     let grammar_def = r#"
         Program = Stmt*
-        Stmt = Return
+        Stmt = Print | Return | Expr
+        Print = "print" "(" Expr ")"
         Return = "return" Expr
         
         Expr = Term
         Term = Factor Add Term | Factor Sub Term | Factor
         Factor = Unary Mul Factor | Unary Div Factor | Unary Mod Factor | Unary
         Unary = UnaryOp Unary | Atom
-        Atom = Float | Int
+        Atom = Float | Int | FunctionCall
         
+        FunctionCall = name:Identifier "(" args:ArgList ")"
+        ArgList = Expr
+        Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
+
         UnaryOp = [!] | [-]
         Add = [\+]
         Sub = [-]
@@ -243,20 +208,17 @@ fn test_modulo() {
 
     let grammar = Grammar::parse(grammar_def);
 
-    let code = "return 10 % 3";
-    let parser = Parser::new(&grammar, code);
-    let node = parser.parse(Rule::Program).expect("Failed to parse modulo");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Int(1));
+    let code = "print(10 % 3)";
+    test_utils::run_code_and_check(&grammar, code, "1");
 }
 
 #[test]
 fn test_configurable_arithmetic() {
     let grammar_def = r#"
         Program = Stmt*
-        Stmt = Return | WhileLoop | IfElse | IfThen | FunctionDef | FunctionCall | Assignment | Expr
-
+        Stmt = Print | Return | WhileLoop | IfElse | IfThen | FunctionDef | FunctionCall | Assignment | Expr
+        
+        Print = "print" "(" Expr ")"
         Return = "return" value:Expr
 
         WhileLoop = "while" condition:Expr "{" body:Block "}"
@@ -316,42 +278,22 @@ fn test_configurable_arithmetic() {
     let grammar = Grammar::parse(&grammar_def);
 
     // Test "plus"
-    let code = "return 4 plus 5";
-    let parser = Parser::new(&grammar, code);
-    let node = parser.parse(Rule::Program).expect("Failed to parse plus");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Int(9));
+    let code = "print(4 plus 5)";
+    test_utils::run_code_and_check(&grammar, code, "9");
 
     // Test "minus"
-    let code = "return 10 minus 2";
-    let parser = Parser::new(&grammar, code);
-    let node = parser.parse(Rule::Program).expect("Failed to parse minus");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Int(8));
+    let code = "print(10 minus 2)";
+    test_utils::run_code_and_check(&grammar, code, "8");
 
     // Test "times"
-    let code = "return 3 times 3";
-    let parser = Parser::new(&grammar, code);
-    let node = parser.parse(Rule::Program).expect("Failed to parse times");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Int(9));
+    let code = "print(3 times 3)";
+    test_utils::run_code_and_check(&grammar, code, "9");
 
     // Test "divide"
-    let code = "return 20 divide 4";
-    let parser = Parser::new(&grammar, code);
-    let node = parser.parse(Rule::Program).expect("Failed to parse divide");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Int(5));
+    let code = "print(20 divide 4)";
+    test_utils::run_code_and_check(&grammar, code, "5");
 
     // Test "modulo"
-    let code = "return 10 modulo 3";
-    let parser = Parser::new(&grammar, code);
-    let node = parser.parse(Rule::Program).expect("Failed to parse modulo");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Int(1));
+    let code = "print(10 modulo 3)";
+    test_utils::run_code_and_check(&grammar, code, "1");
 }

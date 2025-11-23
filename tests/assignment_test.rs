@@ -1,11 +1,12 @@
-use multilang::grammar::{Grammar, Rule};
-use multilang::node::{Context, Value};
-use multilang::parser::Parser;
+use multilang::grammar::Grammar;
+
+mod test_utils;
 
 fn get_grammar() -> Grammar {
     let grammar_def = r#"
         Program = Stmt*
-        Stmt = FunctionDef | FunctionCall | Return | If | Assignment
+        Stmt = FunctionDef | FunctionCall | Print | Return | If | Assignment
+        Print = "print" "(" Expr ")"
         FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
         FunctionDef = "fn" name:Identifier "(" ")" "{" body:Block "}"
         Block = Stmt*
@@ -36,7 +37,7 @@ fn get_grammar() -> Grammar {
         
         Float = [[0-9]+\.[0-9]+]
         Int = [[0-9]+]
-        String = ["[^\"]*"]
+        String = ["[^"]*"]
         Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
     "#;
     Grammar::parse(grammar_def)
@@ -47,13 +48,9 @@ fn test_assignment() {
     let grammar = get_grammar();
     let code = r#"
         x = 10
-        return x
+        print(x)
     "#;
-    let parser = Parser::new(&grammar, code);
-    let node = parser.parse(Rule::Program).expect("Parsing failed");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Int(10));
+    test_utils::run_code_and_check(&grammar, code, "10");
 }
 
 #[test]
@@ -62,13 +59,9 @@ fn test_assignment_update() {
     let code = r#"
         x = 10
         x = 20
-        return x
+        print(x)
     "#;
-    let parser = Parser::new(&grammar, code);
-    let node = parser.parse(Rule::Program).expect("Parsing failed");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Int(20));
+    test_utils::run_code_and_check(&grammar, code, "20");
 }
 
 #[test]
@@ -76,13 +69,9 @@ fn test_assignment_expression() {
     let grammar = get_grammar();
     let code = r#"
         x = 10 + 5 * 2
-        return x
+        print(x)
     "#;
-    let parser = Parser::new(&grammar, code);
-    let node = parser.parse(Rule::Program).expect("Parsing failed");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Int(20));
+    test_utils::run_code_and_check(&grammar, code, "20");
 }
 
 #[test]
@@ -93,11 +82,7 @@ fn test_assignment_in_function() {
             x = 100
             return x
         }
-        return foo()
+        print(foo())
     "#;
-    let parser = Parser::new(&grammar, code);
-    let node = parser.parse(Rule::Program).expect("Parsing failed");
-    let mut ctx = Context::new();
-    let result = node.run(&mut ctx).expect("Runtime error");
-    assert_eq!(result, Value::Int(100));
+    test_utils::run_code_and_check(&grammar, code, "100");
 }
