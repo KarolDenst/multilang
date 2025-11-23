@@ -1,6 +1,17 @@
 function is_palindrome(x) do
-    result = 0
-    return result
+    original = x
+    reversed = 0
+    while x greater 0 do
+        digit = x modulo 10
+        reversed = reversed multiply 10 add digit
+        x = x divide 10
+    end
+    
+    if original equals reversed then
+        return 1
+    else
+        return 0
+    endif
 end
 
 result1 = is_palindrome(121)

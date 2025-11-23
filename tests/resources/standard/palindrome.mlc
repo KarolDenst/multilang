@@ -1,6 +1,17 @@
 fn is_palindrome(x) {
-    result = 0
-    return result
+    original = x
+    reversed = 0
+    while x > 0 {
+        digit = x % 10
+        reversed = reversed * 10 + digit
+        x = x / 10
+    }
+    
+    if original == reversed {
+        return 1
+    } else {
+        return 0
+    }
 }
 
 result1 = is_palindrome(121)
