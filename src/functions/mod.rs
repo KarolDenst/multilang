@@ -15,3 +15,5 @@ pub mod slice;
 pub mod sort;
 pub mod split;
 pub mod sum;
+pub mod to_float;
+pub mod to_int;

@@ -99,6 +99,12 @@ impl Context {
             .insert("ord".to_string(), crate::functions::ord::ord_fn);
         ctx.builtins
             .insert("chr".to_string(), crate::functions::chr::chr_fn);
+        ctx.builtins
+            .insert("to_int".to_string(), crate::functions::to_int::to_int_fn);
+        ctx.builtins.insert(
+            "to_float".to_string(),
+            crate::functions::to_float::to_float_fn,
+        );
 
         ctx
     }

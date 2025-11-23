@@ -14,7 +14,12 @@ function is_palindrome(x) do
     endif
 end
 
-result1 = is_palindrome(121)
-result2 = is_palindrome(123)
+content = read_file("tests/resources/problems/palindrome.input")
+lines = split(content, chr(10))
+val1 = to_int(get(lines, 0))
+val2 = to_int(get(lines, 1))
+
+result1 = is_palindrome(val1)
+result2 = is_palindrome(val2)
 print(result1)
 print(result2)

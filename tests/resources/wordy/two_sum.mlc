@@ -17,7 +17,20 @@ function two_sum(nums, target) do
     return result
 end
 
-nums = [2, 7, 11, 15]
-target = 9
+content = read_file("tests/resources/problems/two_sum.input")
+lines = split(content, chr(10))
+nums_str = get(lines, 0)
+target_str = get(lines, 1)
+
+nums_parts = split(nums_str, ",")
+nums = []
+k = 0
+while k less len(nums_parts) do
+    part = get(nums_parts, k)
+    append(nums, to_int(part))
+    k = k add 1
+end
+
+target = to_int(target_str)
 result = two_sum(nums, target)
 print(result)

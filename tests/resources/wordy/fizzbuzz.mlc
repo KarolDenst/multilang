@@ -20,5 +20,7 @@ function fizzbuzz(n) do
     return result
 end
 
-result = fizzbuzz(15)
+content = read_file("tests/resources/problems/fizzbuzz.input")
+n = to_int(content)
+result = fizzbuzz(n)
 print(result)
