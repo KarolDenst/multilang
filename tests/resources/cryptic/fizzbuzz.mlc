@@ -1,0 +1,23 @@
+@ fizzbuzz : n =>
+    result <- []
+    i <- 1
+    while i < n + 1 =>
+        if i % 15 == 0 =>
+            append # result & "FizzBuzz" $
+        ; else =>
+            if i % 3 == 0 =>
+                append # result & "Fizz" $
+            ; else =>
+                if i % 5 == 0 =>
+                    append # result & "Buzz" $
+                ; else =>
+                    append # result & i $
+                ;
+            ;
+        ;
+        i <- i + 1
+    ;
+    ^ result
+;
+
+result <- fizzbuzz # 15 $

@@ -29,6 +29,8 @@ This document lists the planned features and improvements for the project.
     - [x] `range`
     - [x] `read_file`
     - [x] `ord`, `chr`
+- [x] Add some tests that solve some problems with different grammars
+- [ ] Update main class to be able to point to grammar and code files and print the output
 - [ ] Generate VS Code / Vim syntax highlighting extensions from the grammar.
 
 ## Completed Features

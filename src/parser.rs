@@ -165,10 +165,11 @@ impl<'a> Parser<'a> {
                         Rule::PostfixSuffix => {
                             PostfixSuffixNode::from_children(rule_name, parsed_children)
                         }
-                        Rule::Expr
-                        | Rule::Atom
-                        | Rule::If
-                        | Rule::UnaryOp
+                        Rule::Expr | Rule::Atom | Rule::If | Rule::Key => {
+                            parsed_children.remaining().into_iter().next().unwrap().1
+                        }
+
+                        Rule::UnaryOp
                         | Rule::Eq
                         | Rule::Neq
                         | Rule::Lt
@@ -177,8 +178,13 @@ impl<'a> Parser<'a> {
                         | Rule::Sub
                         | Rule::Mul
                         | Rule::Div
-                        | Rule::Mod
-                        | Rule::Key => parsed_children.remaining().into_iter().next().unwrap().1,
+                        | Rule::Mod => {
+                            let inner = parsed_children.remaining().into_iter().next().unwrap().1;
+                            Box::new(crate::node::RuleNode {
+                                rule: rule_name,
+                                inner,
+                            })
+                        }
                     };
 
                     // Cache success
@@ -233,7 +239,22 @@ impl<'a> Parser<'a> {
                         }
                     })?;
                     if let Some(mat) = re.find(&self.input[pos..]) {
-                        let text = mat.as_str();
+                        let text = &self.input[pos..pos + mat.end()];
+
+                        // Check if matched text is a keyword - if so, reject the match
+                        if self.grammar.keywords.contains(text) {
+                            let (line, col, line_content) = self.get_location(pos);
+                            return Err(ParseError {
+                                message: format!(
+                                    "'{}' is a keyword and cannot be used as an identifier",
+                                    text
+                                ),
+                                line,
+                                column: col,
+                                line_content,
+                            });
+                        }
+
                         children.push((
                             None,
                             Box::new(RawTokenNode {
@@ -282,7 +303,22 @@ impl<'a> Parser<'a> {
                             }
                         })?;
                         if let Some(mat) = re.find(&self.input[pos..]) {
-                            let text = mat.as_str();
+                            let text = &self.input[pos..pos + mat.end()];
+
+                            // Check if matched text is a keyword - if so, reject the match
+                            if self.grammar.keywords.contains(text) {
+                                let (line, col, line_content) = self.get_location(pos);
+                                return Err(ParseError {
+                                    message: format!(
+                                        "'{}' is a keyword and cannot be used as an identifier",
+                                        text
+                                    ),
+                                    line,
+                                    column: col,
+                                    line_content,
+                                });
+                            }
+
                             children.push((
                                 Some(name.clone()),
                                 Box::new(RawTokenNode {

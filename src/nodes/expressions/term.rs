@@ -56,11 +56,11 @@ impl Node for Term {
 
         if let Some(op_node) = children.take_child("") {
             let right = children.take_child("").unwrap();
-            let op_text = op_node.text().unwrap();
-            let op = match op_text.as_str() {
-                "+" => AddOp::Add,
-                "-" => AddOp::Sub,
-                _ => panic!("Unknown AddOp: {}", op_text),
+
+            let op = match op_node.rule() {
+                Some(Rule::Add) => AddOp::Add,
+                Some(Rule::Sub) => AddOp::Sub,
+                _ => panic!("Unknown AddOp rule: {:?}", op_node.rule()),
             };
             Box::new(Term { op, left, right })
         } else {

@@ -14,7 +14,7 @@ impl Node for PostfixNode {
         self.root.run(ctx)
     }
 
-    fn from_children(_rule: Rule, mut children: ParsedChildren) -> Box<dyn Node> {
+    fn from_children(_rule: Rule, children: ParsedChildren) -> Box<dyn Node> {
         // Postfix = Atom PostfixSuffix*
         // Children: Atom, PostfixSuffixNode, PostfixSuffixNode...
 

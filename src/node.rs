@@ -132,12 +132,47 @@ pub trait Node: AsAny {
         vec![]
     }
 
+    fn rule(&self) -> Option<Rule> {
+        None
+    }
+
     // Static method to construct node from children
     fn from_children(rule: Rule, children: ParsedChildren) -> Box<dyn Node>
     where
         Self: Sized;
 
     fn box_clone(&self) -> Box<dyn Node>;
+}
+
+#[derive(Clone)]
+pub struct RuleNode {
+    pub rule: Rule,
+    pub inner: Box<dyn Node>,
+}
+
+impl Node for RuleNode {
+    fn run(&self, ctx: &mut Context) -> Result<Value, RuntimeError> {
+        self.inner.run(ctx)
+    }
+
+    fn text(&self) -> Option<String> {
+        self.inner.text()
+    }
+
+    fn rule(&self) -> Option<Rule> {
+        Some(self.rule)
+    }
+
+    fn from_children(_rule: Rule, _children: ParsedChildren) -> Box<dyn Node> {
+        panic!("RuleNode should not be created from children directly");
+    }
+
+    fn box_clone(&self) -> Box<dyn Node> {
+        Box::new(RuleNode {
+            rule: self.rule,
+            inner: self.inner.clone(),
+        })
+    }
 }
 
 pub trait AsAny: std::any::Any {

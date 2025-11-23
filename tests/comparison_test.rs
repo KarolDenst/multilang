@@ -80,3 +80,20 @@ fn test_precedence() {
     // 1 + 2 == 3 -> 3 == 3 -> True
     assert_eq!(run_code("return 1 + 2 == 3"), Value::Bool(true));
 }
+
+#[test]
+fn test_configurable_comparison() {
+    let grammar_def =
+        std::fs::read_to_string("tests/resources/configurable_ops/grammar.mlg").unwrap();
+    let grammar = Grammar::parse(&grammar_def);
+
+    // Test "4 plus 5 == 9"
+    let code = "return 4 plus 5 == 9";
+    let parser = Parser::new(&grammar, code);
+    let node = parser
+        .parse(Rule::Program)
+        .expect("Failed to parse comparison");
+    let mut ctx = Context::new();
+    let result = node.run(&mut ctx).expect("Runtime error");
+    assert_eq!(result, Value::Bool(true));
+}

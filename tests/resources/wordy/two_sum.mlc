@@ -1,0 +1,22 @@
+function two_sum(nums, target) do
+    i = 0
+    result = []
+    while i less len(nums) do
+        j = i add 1
+        while j less len(nums) do
+            sum_val = get(nums, i) add get(nums, j)
+            if sum_val equals target then
+                append(result, i)
+                append(result, j)
+                return result
+            endif
+            j = j add 1
+        end
+        i = i add 1
+    end
+    return result
+end
+
+nums = [2, 7, 11, 15]
+target = 9
+result = two_sum(nums, target)

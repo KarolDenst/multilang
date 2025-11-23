@@ -250,3 +250,49 @@ fn test_modulo() {
     let result = node.run(&mut ctx).expect("Runtime error");
     assert_eq!(result, Value::Int(1));
 }
+
+#[test]
+fn test_configurable_arithmetic() {
+    let grammar_def = std::fs::read_to_string("tests/resources/configurable_ops/grammar.mlg").unwrap();
+    let grammar = Grammar::parse(&grammar_def);
+
+    // Test "plus"
+    let code = "return 4 plus 5";
+    let parser = Parser::new(&grammar, code);
+    let node = parser.parse(Rule::Program).expect("Failed to parse plus");
+    let mut ctx = Context::new();
+    let result = node.run(&mut ctx).expect("Runtime error");
+    assert_eq!(result, Value::Int(9));
+
+    // Test "minus"
+    let code = "return 10 minus 2";
+    let parser = Parser::new(&grammar, code);
+    let node = parser.parse(Rule::Program).expect("Failed to parse minus");
+    let mut ctx = Context::new();
+    let result = node.run(&mut ctx).expect("Runtime error");
+    assert_eq!(result, Value::Int(8));
+
+    // Test "times"
+    let code = "return 3 times 3";
+    let parser = Parser::new(&grammar, code);
+    let node = parser.parse(Rule::Program).expect("Failed to parse times");
+    let mut ctx = Context::new();
+    let result = node.run(&mut ctx).expect("Runtime error");
+    assert_eq!(result, Value::Int(9));
+
+    // Test "divide"
+    let code = "return 20 divide 4";
+    let parser = Parser::new(&grammar, code);
+    let node = parser.parse(Rule::Program).expect("Failed to parse divide");
+    let mut ctx = Context::new();
+    let result = node.run(&mut ctx).expect("Runtime error");
+    assert_eq!(result, Value::Int(5));
+
+    // Test "modulo"
+    let code = "return 10 modulo 3";
+    let parser = Parser::new(&grammar, code);
+    let node = parser.parse(Rule::Program).expect("Failed to parse modulo");
+    let mut ctx = Context::new();
+    let result = node.run(&mut ctx).expect("Runtime error");
+    assert_eq!(result, Value::Int(1));
+}

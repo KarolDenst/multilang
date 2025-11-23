@@ -86,10 +86,10 @@ impl Node for Comparison {
             let right = children.take_child("").unwrap(); // Term
             let op_text = op_node.text().unwrap();
             let op = match op_text.as_str() {
-                "==" => CompOp::Equal,
-                "!=" => CompOp::NotEqual,
-                "<" => CompOp::Less,
-                ">" => CompOp::Greater,
+                "==" | "equals" => CompOp::Equal,
+                "!=" | "notequals" => CompOp::NotEqual,
+                "<" | "less" => CompOp::Less,
+                ">" | "greater" => CompOp::Greater,
                 _ => panic!("Unknown CompOp: {}", op_text),
             };
             Box::new(Comparison { op, left, right })

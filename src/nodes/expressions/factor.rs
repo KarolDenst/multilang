@@ -66,12 +66,11 @@ impl Node for Factor {
 
         if let Some(op_node) = children.take_child("") {
             let right = children.take_child("").unwrap();
-            let op_text = op_node.text().unwrap();
-            let op = match op_text.as_str() {
-                "*" => MulOp::Mul,
-                "/" => MulOp::Div,
-                "%" => MulOp::Mod,
-                _ => panic!("Unknown MulOp: {}", op_text),
+            let op = match op_node.rule() {
+                Some(Rule::Mul) => MulOp::Mul,
+                Some(Rule::Div) => MulOp::Div,
+                Some(Rule::Mod) => MulOp::Mod,
+                _ => panic!("Unknown MulOp rule: {:?}", op_node.rule()),
             };
             Box::new(Factor { op, left, right })
         } else {

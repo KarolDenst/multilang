@@ -141,6 +141,7 @@ pub struct Production {
 #[derive(Debug, Clone)]
 pub struct Grammar {
     pub rules: HashMap<Rule, Vec<Production>>,
+    pub keywords: std::collections::HashSet<String>,
 }
 
 impl Default for Grammar {
@@ -153,6 +154,7 @@ impl Grammar {
     pub fn new() -> Self {
         Self {
             rules: HashMap::new(),
+            keywords: std::collections::HashSet::new(),
         }
     }
 
@@ -241,6 +243,45 @@ impl Grammar {
                         let sub_rule = Rule::from_str(token)
                             .unwrap_or_else(|_| panic!("Unknown rule in pattern: {}", token));
                         patterns.push(Pattern::RuleReference(sub_rule));
+                    }
+                }
+
+                // Extract keywords: literals that appear before the first Identifier in a pattern
+                // BUT only for statement-level or control-flow rules, not operators
+                let should_extract_keywords = matches!(
+                    rule,
+                    Rule::FunctionDef
+                        | Rule::WhileLoop
+                        | Rule::IfElse
+                        | Rule::IfThen
+                        | Rule::Return
+                        | Rule::ClassDef
+                        | Rule::MethodDef
+                        | Rule::NewExpr
+                        | Rule::Stmt
+                );
+
+                if should_extract_keywords {
+                    let mut seen_identifier = false;
+                    for pattern in &patterns {
+                        match pattern {
+                            Pattern::Literal(s) if !seen_identifier => {
+                                grammar.keywords.insert(s.clone());
+                            }
+                            Pattern::Named(_, sub) => {
+                                if let Pattern::RuleReference(Rule::Identifier) = **sub {
+                                    seen_identifier = true;
+                                } else if let Pattern::Literal(s) = &**sub {
+                                    if !seen_identifier {
+                                        grammar.keywords.insert(s.clone());
+                                    }
+                                }
+                            }
+                            Pattern::RuleReference(Rule::Identifier) => {
+                                seen_identifier = true;
+                            }
+                            _ => {}
+                        }
                     }
                 }
 

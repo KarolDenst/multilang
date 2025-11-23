@@ -1,0 +1,7 @@
+fn is_palindrome(x) {
+    result = 0
+    return result
+}
+
+result1 = is_palindrome(121)
+result2 = is_palindrome(123)
