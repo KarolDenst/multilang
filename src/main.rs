@@ -1,106 +1,47 @@
 use multilang::grammar::{Grammar, Rule};
 use multilang::node::Context;
-use multilang::parser::Parser;
+use multilang::parser::Parser as MLParser;
+
+use clap::Parser;
+use std::fs;
+use std::path::PathBuf;
+
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    /// Path to the grammar file
+    grammar_path: PathBuf,
+
+    /// Path to the code file
+    code_path: PathBuf,
+}
 
 fn main() {
-    // 1. Define Grammar
-    let grammar_def = r##"
-        Program = Stmt*
-        Stmt = FunctionDef | FunctionCall | Print | Return | Assignment | ForLoop | WhileLoop
-        FunctionDef = "fn" name:Identifier "(" params:ParamList ")" "{" body:Block "}"
-        FunctionDef = "fn" name:Identifier "(" ")" "{" body:Block "}"
-        Block = Stmt*
-        FunctionCall = name:Identifier "(" args:ArgList ")"
-        FunctionCall = name:Identifier "(" ")"
-        
-        Assignment = name:Identifier "=" value:Expr
-        
-        ForLoop = "for" variable:Identifier "in" iterable:Expr "{" body:Block "}"
-        WhileLoop = "while" condition:Expr "{" body:Block "}"
-        
-        ParamList = Identifier "," params:ParamList
-        ParamList = Identifier
-        
-        ArgList = Expr "," args:ArgList
-        ArgList = Expr
-        
-        Return = "return" value:Expr
-        
-        Expr = LogicalOr
-        LogicalOr = LogicalAnd "||" LogicalOr | LogicalAnd
-        LogicalAnd = Comparison "&&" LogicalAnd | Comparison
-        Comparison = Term Eq Term | Term Neq Term | Term Lt Term | Term Gt Term | Term
-        Term = Factor Add Term | Factor Sub Term | Factor
-        Factor = Unary Mul Factor | Unary Div Factor | Unary Mod Factor | Unary
-        Unary = UnaryOp Unary | Atom
-        Atom = Float | Int | String | FunctionCall | Identifier | ListLiteral | MapLiteral | "(" Expr ")"
-        
-        ListLiteral = "[" Elements "]"
-        ListLiteral = "[" "]"
-        
-        ListLiteral = "[" Elements "]"
-        ListLiteral = "[" "]"
-        
-        Elements = Expr "," Elements
-        Elements = Expr
-        
-        MapLiteral = "{" MapEntries "}"
-        MapLiteral = "{" "}"
-        
-        MapEntries = MapEntry "," MapEntries
-        MapEntries = MapEntry
-        
-        MapEntry = Key ":" Expr
-        Key = String | Identifier
-        
-        UnaryOp = [!] | [-]
-        Eq = [==]
-        Neq = [!=]
-        Lt = [<]
-        Gt = [>]
-        Add = [+]
-        Sub = [-]
-        Mul = [*]
-        Div = [/]
-        Mod = [%]
-        
-        Float = [[0-9]+[.][0-9]+]
-        Int = [[0-9]+]
-        String = ["[^\"]*"]
-        Identifier = [[a-zA-Z_][a-zA-Z0-9_]*]
-    "##;
+    let cli = Cli::parse();
+
+    println!("Reading grammar from: {:?}", cli.grammar_path);
+    let grammar_def = fs::read_to_string(&cli.grammar_path).expect(&format!(
+        "Failed to read grammar file: {:?}",
+        cli.grammar_path
+    ));
+
+    println!("Reading code from: {:?}", cli.code_path);
+    let input = fs::read_to_string(&cli.code_path)
+        .expect(&format!("Failed to read code file: {:?}", cli.code_path));
 
     println!("Parsing grammar...");
-    let grammar = Grammar::parse(grammar_def);
+    let grammar = Grammar::parse(&grammar_def);
 
-    // 2. Define Input Script
-    let input = r#"
-        fn add(a, b) {
-            return a
-        }
-        print(100)
-        add(10, 20)
-    "#;
-
-    // 3. Parse Input
-    println!("Parsing input: '{}'", input);
-    let parser = Parser::new(&grammar, input);
+    println!("Parsing input...");
+    let parser = MLParser::new(&grammar, &input);
     match parser.parse(Rule::Program) {
         Ok(program_node) => {
             println!("Parsing successful! Running program...");
-            // 4. Run Program
             let mut ctx = Context::new();
 
             match program_node.run(&mut ctx) {
                 Ok(result) => {
                     println!("Program returned: {:?}", result);
-
-                    if let multilang::node::Value::Int(val) = result {
-                        assert_eq!(val, 10);
-                        println!("Assertion passed: Returned 10");
-                    } else {
-                        println!("Assertion failed: Expected Int(10), got {:?}", result);
-                    }
                 }
                 Err(e) => {
                     println!("Runtime Error: {}", e);

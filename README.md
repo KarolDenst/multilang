@@ -24,6 +24,24 @@ To run tests:
 ```bash
 cargo test
 ```
+
+### Running the Interpreter
+
+You can run the interpreter by providing a grammar file and a code file as arguments.
+
+```bash
+cargo run -- <grammar_file> <code_file>
+```
+
+**Example:**
+
+Using the example resources provided in the `tests/resources` directory:
+
+```bash
+cargo run -- tests/resources/standard/grammar.mlg tests/resources/standard/two_sum.mlc
+```
+
+The `tests/resources` directory contains examples of different language grammars ("standard", "wordy", "cryptic") and corresponding code files (`two_sum.mlc`, `palindrome.mlc`, `fizzbuzz.mlc`) that demonstrate the flexibility of Multilang.
 You can define your language grammar using a string. The format is:
 
 ```
