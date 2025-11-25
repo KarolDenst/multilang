@@ -1,5 +1,7 @@
 use multilang::grammar::Grammar;
 
+use crate::test_utils::run_code_and_check;
+
 mod test_utils;
 
 fn get_grammar() -> Grammar {
@@ -50,7 +52,7 @@ fn test_assignment() {
         x = 10
         print(x)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "10");
+    run_code_and_check(&grammar, code, "10");
 }
 
 #[test]
@@ -61,7 +63,7 @@ fn test_assignment_update() {
         x = 20
         print(x)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "20");
+    run_code_and_check(&grammar, code, "20");
 }
 
 #[test]
@@ -71,7 +73,7 @@ fn test_assignment_expression() {
         x = 10 + 5 * 2
         print(x)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "20");
+    run_code_and_check(&grammar, code, "20");
 }
 
 #[test]
@@ -84,5 +86,5 @@ fn test_assignment_in_function() {
         }
         print(foo())
     "#;
-    test_utils::run_code_and_check(&grammar, code, "100");
+    run_code_and_check(&grammar, code, "100");
 }

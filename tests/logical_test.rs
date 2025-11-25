@@ -1,5 +1,7 @@
 use multilang::grammar::Grammar;
 
+use crate::test_utils::run_code_and_check;
+
 mod test_utils;
 
 fn get_logical_grammar() -> Grammar {
@@ -45,26 +47,26 @@ fn get_logical_grammar() -> Grammar {
 #[test]
 fn test_and() {
     let grammar = get_logical_grammar();
-    test_utils::run_code_and_check(&grammar, "print(1 == 1 && 2 == 2)", "true");
-    test_utils::run_code_and_check(&grammar, "print(1 == 1 && 1 == 2)", "false");
-    test_utils::run_code_and_check(&grammar, "print(1 == 2 && 1 == 1)", "false");
-    test_utils::run_code_and_check(&grammar, "print(1 == 2 && 1 == 2)", "false");
+    run_code_and_check(&grammar, "print(1 == 1 && 2 == 2)", "true");
+    run_code_and_check(&grammar, "print(1 == 1 && 1 == 2)", "false");
+    run_code_and_check(&grammar, "print(1 == 2 && 1 == 1)", "false");
+    run_code_and_check(&grammar, "print(1 == 2 && 1 == 2)", "false");
 }
 
 #[test]
 fn test_or() {
     let grammar = get_logical_grammar();
-    test_utils::run_code_and_check(&grammar, "print(1 == 1 || 2 == 2)", "true");
-    test_utils::run_code_and_check(&grammar, "print(1 == 1 || 1 == 2)", "true");
-    test_utils::run_code_and_check(&grammar, "print(1 == 2 || 1 == 1)", "true");
-    test_utils::run_code_and_check(&grammar, "print(1 == 2 || 1 == 2)", "false");
+    run_code_and_check(&grammar, "print(1 == 1 || 2 == 2)", "true");
+    run_code_and_check(&grammar, "print(1 == 1 || 1 == 2)", "true");
+    run_code_and_check(&grammar, "print(1 == 2 || 1 == 1)", "true");
+    run_code_and_check(&grammar, "print(1 == 2 || 1 == 2)", "false");
 }
 
 #[test]
 fn test_not() {
     let grammar = get_logical_grammar();
-    test_utils::run_code_and_check(&grammar, "print(! (1 == 2))", "true");
-    test_utils::run_code_and_check(&grammar, "print(! (1 == 1))", "false");
+    run_code_and_check(&grammar, "print(! (1 == 2))", "true");
+    run_code_and_check(&grammar, "print(! (1 == 1))", "false");
 }
 
 #[test]
@@ -72,12 +74,12 @@ fn test_precedence() {
     let grammar = get_logical_grammar();
     // && has higher precedence than ||
     // true || false && false -> true || (false && false) -> true || false -> true
-    test_utils::run_code_and_check(&grammar, "print(1==1 || 1==2 && 1==2)", "true");
+    run_code_and_check(&grammar, "print(1==1 || 1==2 && 1==2)", "true");
 
     // ! has higher precedence than &&
     // !true && false -> false && false -> false
-    test_utils::run_code_and_check(&grammar, "print(! (1==1) && (1==2))", "false");
+    run_code_and_check(&grammar, "print(! (1==1) && (1==2))", "false");
 
     // !false && true -> true && true -> true
-    test_utils::run_code_and_check(&grammar, "print(! (1==2) && (1==1))", "true");
+    run_code_and_check(&grammar, "print(! (1==2) && (1==1))", "true");
 }

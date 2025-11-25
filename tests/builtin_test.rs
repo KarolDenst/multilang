@@ -1,4 +1,6 @@
-use multilang::grammar::{Grammar, Rule};
+use multilang::grammar::Grammar;
+
+use crate::test_utils::run_code_and_check;
 
 fn get_grammar() -> Grammar {
     let grammar_def = r##"
@@ -64,7 +66,7 @@ fn test_len_string() {
         result = len("hello")
         print(result)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "5");
+    run_code_and_check(&grammar, code, "5");
 }
 
 #[test]
@@ -75,7 +77,7 @@ fn test_len_list() {
         result = len(lst)
         print(result)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "5");
+    run_code_and_check(&grammar, code, "5");
 }
 
 #[test]
@@ -88,7 +90,7 @@ fn test_abs_int() {
         print(result1)
         print(result2)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "5\n5");
+    run_code_and_check(&grammar, code, "5\n5");
 }
 
 #[test]
@@ -101,7 +103,7 @@ fn test_abs_float() {
         print(result1)
         print(result2)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "3.14\n3.14");
+    run_code_and_check(&grammar, code, "3.14\n3.14");
 }
 
 #[test]
@@ -112,7 +114,7 @@ fn test_sum() {
         result = sum(nums)
         print(result)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "15");
+    run_code_and_check(&grammar, code, "15");
 }
 
 #[test]
@@ -123,7 +125,7 @@ fn test_sum_with_floats() {
         result = sum(nums)
         print(result)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "11");
+    run_code_and_check(&grammar, code, "11");
 }
 
 #[test]
@@ -133,7 +135,7 @@ fn test_range_one_arg() {
         result = range(5)
         print(result)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "[0, 1, 2, 3, 4]");
+    run_code_and_check(&grammar, code, "[0, 1, 2, 3, 4]");
 }
 
 #[test]
@@ -143,7 +145,7 @@ fn test_range_two_args() {
         result = range(2, 7)
         print(result)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "[2, 3, 4, 5, 6]");
+    run_code_and_check(&grammar, code, "[2, 3, 4, 5, 6]");
 }
 
 #[test]
@@ -154,7 +156,7 @@ fn test_slice_string() {
         result = slice(s, 0, 5)
         print(result)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "hello");
+    run_code_and_check(&grammar, code, "hello");
 }
 
 #[test]
@@ -165,7 +167,7 @@ fn test_slice_list() {
         result = slice(lst, 1, 4)
         print(result)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "[2, 3, 4]");
+    run_code_and_check(&grammar, code, "[2, 3, 4]");
 }
 
 #[test]
@@ -176,7 +178,7 @@ fn test_split() {
         result = split(s, ",")
         print(result)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "[hello, world, test]");
+    run_code_and_check(&grammar, code, "[hello, world, test]");
 }
 
 #[test]
@@ -187,7 +189,7 @@ fn test_join() {
         result = join(lst, " ")
         print(result)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "hello world");
+    run_code_and_check(&grammar, code, "hello world");
 }
 
 #[test]
@@ -198,7 +200,7 @@ fn test_join_with_numbers() {
         result = join(lst, "-")
         print(result)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "1-2-3");
+    run_code_and_check(&grammar, code, "1-2-3");
 }
 
 #[test]
@@ -209,7 +211,7 @@ fn test_reverse() {
         reverse(lst)
         print(lst)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "[5, 4, 3, 2, 1]");
+    run_code_and_check(&grammar, code, "[5, 4, 3, 2, 1]");
 }
 
 #[test]
@@ -220,7 +222,7 @@ fn test_sort_ints() {
         sort(lst)
         print(lst)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "[1, 2, 5, 8, 9]");
+    run_code_and_check(&grammar, code, "[1, 2, 5, 8, 9]");
 }
 
 #[test]
@@ -231,7 +233,7 @@ fn test_sort_strings() {
         sort(lst)
         print(lst)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "[apple, mango, zebra]");
+    run_code_and_check(&grammar, code, "[apple, mango, zebra]");
 }
 
 #[test]
@@ -243,7 +245,7 @@ fn test_ord() {
         print(result1)
         print(result2)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "65\n97");
+    run_code_and_check(&grammar, code, "65\n97");
 }
 
 #[test]
@@ -255,7 +257,7 @@ fn test_chr() {
         print(result1)
         print(result2)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "A\na");
+    run_code_and_check(&grammar, code, "A\na");
 }
 
 #[test]
@@ -268,5 +270,5 @@ fn test_ord_chr_roundtrip() {
         print(code_point)
         print(restored)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "88\nX");
+    run_code_and_check(&grammar, code, "88\nX");
 }

@@ -1,6 +1,8 @@
 use multilang::grammar::Grammar;
 use std::fs;
 
+use crate::test_utils::run_code_and_check;
+
 mod test_utils;
 
 fn load_grammar(path: &str) -> Grammar {
@@ -13,21 +15,21 @@ fn load_grammar(path: &str) -> Grammar {
 fn test_standard_two_sum() {
     let grammar = load_grammar("tests/resources/standard/grammar.mlg");
     let mlc = fs::read_to_string("tests/resources/standard/two_sum.mlc").unwrap();
-    test_utils::run_code_and_check(&grammar, &mlc, "[0, 1]");
+    run_code_and_check(&grammar, &mlc, "[0, 1]");
 }
 
 #[test]
 fn test_standard_palindrome() {
     let grammar = load_grammar("tests/resources/standard/grammar.mlg");
     let mlc = fs::read_to_string("tests/resources/standard/palindrome.mlc").unwrap();
-    test_utils::run_code_and_check(&grammar, &mlc, "1\n0");
+    run_code_and_check(&grammar, &mlc, "1\n0");
 }
 
 #[test]
 fn test_standard_fizzbuzz() {
     let grammar = load_grammar("tests/resources/standard/grammar.mlg");
     let mlc = fs::read_to_string("tests/resources/standard/fizzbuzz.mlc").unwrap();
-    test_utils::run_code_and_check(
+    run_code_and_check(
         &grammar,
         &mlc,
         "[1, 2, Fizz, 4, Buzz, Fizz, 7, 8, Fizz, Buzz, 11, Fizz, 13, 14, FizzBuzz]",
@@ -39,21 +41,21 @@ fn test_standard_fizzbuzz() {
 fn test_wordy_two_sum() {
     let grammar = load_grammar("tests/resources/wordy/grammar.mlg");
     let mlc = fs::read_to_string("tests/resources/wordy/two_sum.mlc").unwrap();
-    test_utils::run_code_and_check(&grammar, &mlc, "[0, 1]");
+    run_code_and_check(&grammar, &mlc, "[0, 1]");
 }
 
 #[test]
 fn test_wordy_palindrome() {
     let grammar = load_grammar("tests/resources/wordy/grammar.mlg");
     let mlc = fs::read_to_string("tests/resources/wordy/palindrome.mlc").unwrap();
-    test_utils::run_code_and_check(&grammar, &mlc, "1\n0");
+    run_code_and_check(&grammar, &mlc, "1\n0");
 }
 
 #[test]
 fn test_wordy_fizzbuzz() {
     let grammar = load_grammar("tests/resources/wordy/grammar.mlg");
     let mlc = fs::read_to_string("tests/resources/wordy/fizzbuzz.mlc").unwrap();
-    test_utils::run_code_and_check(
+    run_code_and_check(
         &grammar,
         &mlc,
         "[1, 2, Fizz, 4, Buzz, Fizz, 7, 8, Fizz, Buzz, 11, Fizz, 13, 14, FizzBuzz]",
@@ -65,21 +67,21 @@ fn test_wordy_fizzbuzz() {
 fn test_cryptic_two_sum() {
     let grammar = load_grammar("tests/resources/cryptic/grammar.mlg");
     let mlc = fs::read_to_string("tests/resources/cryptic/two_sum.mlc").unwrap();
-    test_utils::run_code_and_check(&grammar, &mlc, "[0, 1]");
+    run_code_and_check(&grammar, &mlc, "[0, 1]");
 }
 
 #[test]
 fn test_cryptic_palindrome() {
     let grammar = load_grammar("tests/resources/cryptic/grammar.mlg");
     let mlc = fs::read_to_string("tests/resources/cryptic/palindrome.mlc").unwrap();
-    test_utils::run_code_and_check(&grammar, &mlc, "1\n0");
+    run_code_and_check(&grammar, &mlc, "1\n0");
 }
 
 #[test]
 fn test_cryptic_fizzbuzz() {
     let grammar = load_grammar("tests/resources/cryptic/grammar.mlg");
     let mlc = fs::read_to_string("tests/resources/cryptic/fizzbuzz.mlc").unwrap();
-    test_utils::run_code_and_check(
+    run_code_and_check(
         &grammar,
         &mlc,
         "[1, 2, Fizz, 4, Buzz, Fizz, 7, 8, Fizz, Buzz, 11, Fizz, 13, 14, FizzBuzz]",

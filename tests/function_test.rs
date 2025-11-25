@@ -1,6 +1,8 @@
 use multilang::grammar::Grammar;
 use std::fs;
 
+use crate::test_utils::run_code_and_check;
+
 mod test_utils;
 
 fn load_standard_grammar() -> Grammar {
@@ -20,7 +22,7 @@ fn test_function_args() {
         }
         print(identity(42))
     "#;
-    test_utils::run_code_and_check(&grammar, input1, "42");
+    run_code_and_check(&grammar, input1, "42");
 
     // Test multiple arguments
     let input2 = r#"
@@ -29,7 +31,7 @@ fn test_function_args() {
         }
         print(add(10, 20))
     "#;
-    test_utils::run_code_and_check(&grammar, input2, "20");
+    run_code_and_check(&grammar, input2, "20");
 }
 
 #[test]
@@ -46,5 +48,5 @@ fn test_nested_calls_with_args() {
         print(bar(100))
     "#;
 
-    test_utils::run_code_and_check(&grammar, input, "100");
+    run_code_and_check(&grammar, input, "100");
 }

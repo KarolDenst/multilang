@@ -1,5 +1,7 @@
 use multilang::grammar::Grammar;
 
+use crate::test_utils::run_code_and_check;
+
 mod test_utils;
 
 fn get_comparison_grammar() -> Grammar {
@@ -41,46 +43,46 @@ fn get_comparison_grammar() -> Grammar {
 #[test]
 fn test_int_equality() {
     let grammar = get_comparison_grammar();
-    test_utils::run_code_and_check(&grammar, "print(1 == 1)", "true");
-    test_utils::run_code_and_check(&grammar, "print(1 == 2)", "false");
-    test_utils::run_code_and_check(&grammar, "print(1 != 2)", "true");
-    test_utils::run_code_and_check(&grammar, "print(1 != 1)", "false");
+    run_code_and_check(&grammar, "print(1 == 1)", "true");
+    run_code_and_check(&grammar, "print(1 == 2)", "false");
+    run_code_and_check(&grammar, "print(1 != 2)", "true");
+    run_code_and_check(&grammar, "print(1 != 1)", "false");
 }
 
 #[test]
 fn test_int_comparison() {
     let grammar = get_comparison_grammar();
-    test_utils::run_code_and_check(&grammar, "print(1 < 2)", "true");
-    test_utils::run_code_and_check(&grammar, "print(2 < 1)", "false");
-    test_utils::run_code_and_check(&grammar, "print(2 > 1)", "true");
-    test_utils::run_code_and_check(&grammar, "print(1 > 2)", "false");
+    run_code_and_check(&grammar, "print(1 < 2)", "true");
+    run_code_and_check(&grammar, "print(2 < 1)", "false");
+    run_code_and_check(&grammar, "print(2 > 1)", "true");
+    run_code_and_check(&grammar, "print(1 > 2)", "false");
 }
 
 #[test]
 fn test_float_comparison() {
     let grammar = get_comparison_grammar();
-    test_utils::run_code_and_check(&grammar, "print(1.0 == 1.0)", "true");
-    test_utils::run_code_and_check(&grammar, "print(1.0 != 2.0)", "true");
-    test_utils::run_code_and_check(&grammar, "print(1.0 < 2.0)", "true");
-    test_utils::run_code_and_check(&grammar, "print(2.0 > 1.0)", "true");
+    run_code_and_check(&grammar, "print(1.0 == 1.0)", "true");
+    run_code_and_check(&grammar, "print(1.0 != 2.0)", "true");
+    run_code_and_check(&grammar, "print(1.0 < 2.0)", "true");
+    run_code_and_check(&grammar, "print(2.0 > 1.0)", "true");
 }
 
 #[test]
 fn test_string_comparison() {
     let grammar = get_comparison_grammar();
-    test_utils::run_code_and_check(&grammar, "print(\"a\" == \"a\")", "true");
-    test_utils::run_code_and_check(&grammar, "print(\"a\" != \"b\")", "true");
-    test_utils::run_code_and_check(&grammar, "print(\"a\" < \"b\")", "true");
-    test_utils::run_code_and_check(&grammar, "print(\"b\" > \"a\")", "true");
+    run_code_and_check(&grammar, "print(\"a\" == \"a\")", "true");
+    run_code_and_check(&grammar, "print(\"a\" != \"b\")", "true");
+    run_code_and_check(&grammar, "print(\"a\" < \"b\")", "true");
+    run_code_and_check(&grammar, "print(\"b\" > \"a\")", "true");
 }
 
 #[test]
 fn test_precedence() {
     let grammar = get_comparison_grammar();
     // 1 + 2 < 4 -> 3 < 4 -> True
-    test_utils::run_code_and_check(&grammar, "print(1 + 2 < 4)", "true");
+    run_code_and_check(&grammar, "print(1 + 2 < 4)", "true");
     // 1 + 2 == 3 -> 3 == 3 -> True
-    test_utils::run_code_and_check(&grammar, "print(1 + 2 == 3)", "true");
+    run_code_and_check(&grammar, "print(1 + 2 == 3)", "true");
 }
 
 #[test]
@@ -150,5 +152,5 @@ fn test_configurable_comparison() {
 
     // Test "4 plus 5 == 9"
     let code = "print(4 plus 5 == 9)";
-    test_utils::run_code_and_check(&grammar, code, "true");
+    run_code_and_check(&grammar, code, "true");
 }

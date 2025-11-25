@@ -1,5 +1,7 @@
 use multilang::grammar::Grammar;
 
+use crate::test_utils::run_code_and_check;
+
 mod test_utils;
 
 #[test]
@@ -18,7 +20,7 @@ fn test_if_true() {
     "#;
     let grammar = Grammar::parse(grammar_def);
 
-    test_utils::run_code_and_check(&grammar, "if true { print(10) }", "10");
+    run_code_and_check(&grammar, "if true { print(10) }", "10");
 }
 
 #[test]
@@ -66,8 +68,8 @@ fn test_if_else() {
     "#;
     let grammar = Grammar::parse(grammar_def);
 
-    test_utils::run_code_and_check(&grammar, "if true { print(10) } else { print(20) }", "10");
-    test_utils::run_code_and_check(&grammar, "if false { print(10) } else { print(20) }", "20");
+    run_code_and_check(&grammar, "if true { print(10) } else { print(20) }", "10");
+    run_code_and_check(&grammar, "if false { print(10) } else { print(20) }", "20");
 }
 
 #[test]
@@ -85,7 +87,7 @@ fn test_int_condition() {
     let grammar = Grammar::parse(grammar_def);
 
     // 1 is true
-    test_utils::run_code_and_check(&grammar, "if 1 { print(10) }", "10");
+    run_code_and_check(&grammar, "if 1 { print(10) }", "10");
     // 0 is false - no output
     let code = "if 0 { print(10) }";
     let (logs, _guard) = test_utils::capture_output();

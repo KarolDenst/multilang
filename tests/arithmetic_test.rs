@@ -2,6 +2,8 @@ use multilang::grammar::{Grammar, Rule};
 use multilang::node::{Context, Value};
 use multilang::parser::Parser;
 
+use crate::test_utils::run_code_and_check;
+
 fn test_script(grammar_def: &str, input: &str, expected: Value) {
     let grammar = Grammar::parse(grammar_def);
     let parser = Parser::new(&grammar, input);
@@ -101,7 +103,7 @@ fn test_float_literal() {
     let code = r#"
         print(3.14)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "3.14");
+    run_code_and_check(&grammar, code, "3.14");
 }
 
 #[test]
@@ -110,7 +112,7 @@ fn test_string_literal() {
     let code = r#"
         print("hello world")
     "#;
-    test_utils::run_code_and_check(&grammar, code, "hello world");
+    run_code_and_check(&grammar, code, "hello world");
 }
 
 #[test]
@@ -119,7 +121,7 @@ fn test_float_arithmetic() {
     let code = r#"
         print(1.5 + 2.5)
     "#;
-    test_utils::run_code_and_check(&grammar, code, "4");
+    run_code_and_check(&grammar, code, "4");
 }
 
 #[test]
@@ -128,7 +130,7 @@ fn test_string_concatenation() {
     let code = r#"
         print("hello" + " " + "world")
     "#;
-    test_utils::run_code_and_check(&grammar, code, "hello world");
+    run_code_and_check(&grammar, code, "hello world");
 }
 
 #[test]
@@ -166,15 +168,15 @@ fn test_negative_numbers() {
 
     // Test negative int
     let code = "print(-5)";
-    test_utils::run_code_and_check(&grammar, code, "-5");
+    run_code_and_check(&grammar, code, "-5");
 
     // Test negative float
     let code = "print(-3.14)";
-    test_utils::run_code_and_check(&grammar, code, "-3.14");
+    run_code_and_check(&grammar, code, "-3.14");
 
     // Test arithmetic with negative
     let code = "print(5 + -3)";
-    test_utils::run_code_and_check(&grammar, code, "2");
+    run_code_and_check(&grammar, code, "2");
 }
 
 #[test]
@@ -209,7 +211,7 @@ fn test_modulo() {
     let grammar = Grammar::parse(grammar_def);
 
     let code = "print(10 % 3)";
-    test_utils::run_code_and_check(&grammar, code, "1");
+    run_code_and_check(&grammar, code, "1");
 }
 
 #[test]
@@ -279,21 +281,21 @@ fn test_configurable_arithmetic() {
 
     // Test "plus"
     let code = "print(4 plus 5)";
-    test_utils::run_code_and_check(&grammar, code, "9");
+    run_code_and_check(&grammar, code, "9");
 
     // Test "minus"
     let code = "print(10 minus 2)";
-    test_utils::run_code_and_check(&grammar, code, "8");
+    run_code_and_check(&grammar, code, "8");
 
     // Test "times"
     let code = "print(3 times 3)";
-    test_utils::run_code_and_check(&grammar, code, "9");
+    run_code_and_check(&grammar, code, "9");
 
     // Test "divide"
     let code = "print(20 divide 4)";
-    test_utils::run_code_and_check(&grammar, code, "5");
+    run_code_and_check(&grammar, code, "5");
 
     // Test "modulo"
     let code = "print(10 modulo 3)";
-    test_utils::run_code_and_check(&grammar, code, "1");
+    run_code_and_check(&grammar, code, "1");
 }
